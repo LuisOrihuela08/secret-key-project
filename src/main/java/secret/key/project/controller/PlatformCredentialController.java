@@ -4,13 +4,13 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import secret.key.project.dto.PlatformCredentialDTO;
 import secret.key.project.entity.PlatformCredential;
 import secret.key.project.service.PlatformCredentialService;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -55,5 +55,12 @@ public class PlatformCredentialController {
         return new ResponseEntity<>(Map.of("message", "Plataforma eliminada con éxito!"), HttpStatus.OK);
     }
 
-
+    @GetMapping("/export/excel")
+    public ResponseEntity<byte[]> exportPlatformCredentialExcel() {
+        byte[] excel = platformCredentialService.exportarPlataformas();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentDisposition(ContentDisposition.attachment().filename("lista-plataformas.xlsx").build());
+        return ResponseEntity.status(HttpStatus.OK).headers(headers).body(excel);
+    }
 }
