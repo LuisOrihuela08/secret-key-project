@@ -1,15 +1,23 @@
 package secret.key.project.serviceImpl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import secret.key.project.dto.PlatformCredentialDTO;
 import secret.key.project.entity.PlatformCredential;
+import secret.key.project.error.PlatformCredentialExporException;
 import secret.key.project.error.PlatformCredentialNoEncontradoException;
 import secret.key.project.mapper.PlatformCredentialMapper;
 import secret.key.project.repository.PlatformCredentialRepository;
 import secret.key.project.service.PlatformCredentialService;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -93,5 +101,71 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
 
         log.info("Plataforma encontrada: {}", entity);
         return PlatformCredentialMapper.toDTO(entity);
+    }
+
+    @Override
+    public List<PlatformCredentialDTO> getAllPlatformCredentials() {
+
+        List<PlatformCredential> list = platformCredentialRepository.findAll();
+
+        log.info("Listado de las plataformas OK!");
+        return list.stream().map(PlatformCredentialMapper::toDTO).toList();
+    }
+
+    @Override
+    public byte[] exportarPlataformas() {
+        List<PlatformCredential> list = platformCredentialRepository.findAll();
+        return generarExcel(list);
+    }
+
+    private byte[] generarExcel (List<PlatformCredential> datos){
+
+        try {
+            Workbook workbook = new XSSFWorkbook();
+            Sheet sheet = workbook.createSheet("Lista de credenciales de plataformas");
+
+            Row headerRow = sheet.createRow(0);
+            String [] columnas = {"Plataforma", "URL", "Username", "Password", "Fecha de creación"};
+
+            for (int i=0; i<columnas.length; i++){
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(columnas[i]);
+                cell.setCellStyle(crearEstiloEncabezado(workbook));
+            }
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            int rowNum = 1;
+            for (PlatformCredential entity: datos){
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(entity.getName());
+                row.createCell(1).setCellValue(entity.getUrl());
+                row.createCell(2).setCellValue(entity.getUsername());
+                row.createCell(3).setCellValue(entity.getPassword());
+                row.createCell(4).setCellValue(entity.getCreatedDate().format(formatter));
+            }
+
+            for (int i=0; i<columnas.length; i++){
+                sheet.autoSizeColumn(i);
+            }
+
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            workbook.write(outputStream);
+            workbook.close();
+
+            log.info("Excel de las plaformas generado exitosamente!");
+            return outputStream.toByteArray();
+
+        } catch (IOException e) {
+            log.error("Hubo un error al generar el excel de las plataformas: {}", e.getMessage());
+            throw new PlatformCredentialExporException("Error al generar el excel de las plataformas: " + e.getMessage());
+        }
+    }
+
+    private CellStyle crearEstiloEncabezado(Workbook workbook) {
+        CellStyle estilo = workbook.createCellStyle();
+        org.apache.poi.ss.usermodel.Font font = workbook.createFont();
+        font.setBold(true);
+        estilo.setFont(font);
+        return estilo;
     }
 }

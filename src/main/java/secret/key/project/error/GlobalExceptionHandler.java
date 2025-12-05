@@ -28,6 +28,13 @@ public class GlobalExceptionHandler {
         return construirRespuesta(HttpStatus.NOT_FOUND, exception.getMessage());
     }
 
+    //Manejar error al generar reportes
+    @ExceptionHandler(PlatformCredentialExporException.class)
+    public ResponseEntity<Map<String, Object>> manejarPlatformCredentialExport (PlatformCredentialExporException exception){
+        log.warn("Error al exportar reporte: {}", exception.getMessage());
+        return construirRespuesta(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
+    }
+
     private ResponseEntity<Map<String, Object>> construirRespuesta(HttpStatus status, String mensaje){
         return ResponseEntity.status(status).body(Map.of(
                 "status", status.value(),
