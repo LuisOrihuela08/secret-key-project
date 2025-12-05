@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: secret-key-project
+    version: 1.0.0
+  profiles:
+    active: prod
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+    import: optional:file:.env[.properties]
+
+  mongodb:
+    uri: mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@mskcluster.ppgxfer.mongodb.net/${MONGO_DATABASE}?retryWrites=true&w=majority&appName=MSKCluster
+
+server:
+  forward-headers-strategy: framework  # Habilita detección de protocolo HTTPS en producción
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui-custom.html
