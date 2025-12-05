@@ -3,13 +3,13 @@ spring:
     name: secret-key-project
     version: 1.0.0
   profiles:
-    active: prod
+    active: dev
 
 ---
 spring:
   config:
     activate:
-      on-profile: prod
+      on-profile: dev
     import: optional:file:.env[.properties]
 
   mongodb:
@@ -17,6 +17,24 @@ spring:
 
 server:
   forward-headers-strategy: framework  # Habilita detección de protocolo HTTPS en producción
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui-custom.html
+
+---
+# Configuración para el perfil prod + docker
+spring:
+  config:
+    activate:
+      on-profile: prod
+    import: optional:file:.env[.properties]
+
+  mongodb:
+    uri: mongodb://mongo:mongo@mongodb:27017/secretkey?authSource=admin
+
+server:
+  forward-headers-strategy: framework
 
 springdoc:
   swagger-ui:
