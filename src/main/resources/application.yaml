@@ -23,7 +23,7 @@ springdoc:
     path: /swagger-ui-custom.html
 
 ---
-# Configuración para el perfil prod + docker
+# Configuración para el perfil dev + docker
 spring:
   config:
     activate:
