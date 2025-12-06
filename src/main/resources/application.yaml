@@ -3,13 +3,13 @@ spring:
     name: secret-key-project
     version: 1.0.0
   profiles:
-    active: dev
+    active: prod
 
 ---
 spring:
   config:
     activate:
-      on-profile: dev
+      on-profile: prod
     import: optional:file:.env[.properties]
 
   mongodb:
@@ -27,7 +27,7 @@ springdoc:
 spring:
   config:
     activate:
-      on-profile: prod
+      on-profile: dev
     import: optional:file:.env[.properties]
 
   mongodb:

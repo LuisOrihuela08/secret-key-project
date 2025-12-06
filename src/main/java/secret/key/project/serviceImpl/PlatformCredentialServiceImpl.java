@@ -1,7 +1,15 @@
 package secret.key.project.serviceImpl;
+import java.awt.Color;
 
+import com.lowagie.text.*;
+import com.lowagie.text.Font;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +24,7 @@ import secret.key.project.service.PlatformCredentialService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -113,11 +122,107 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
     }
 
     @Override
-    public byte[] exportarPlataformas() {
+    public byte[] exportarPlataformasExcel() {
         List<PlatformCredential> list = platformCredentialRepository.findAll();
         return generarExcel(list);
     }
 
+    @Override
+    public byte[] exportarPlataformasPDF() {
+
+        List<PlatformCredential> list = platformCredentialRepository.findAll();
+        return generarPDF(list);
+    }
+
+    //Métodos auxiliares para generar PDF
+    private byte[] generarPDF (List<PlatformCredential> datos) {
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Document document = new Document();
+
+        try {
+            PdfWriter.getInstance(document, baos);
+            document.open();
+
+            //Titulos y encabezados
+            Font titleFont = new Font(Font.HELVETICA, 20, Font.BOLD, Color.WHITE);
+            Font infoFont = new Font(Font.HELVETICA, 12, Font.NORMAL, Color.DARK_GRAY);
+            Font headerFont = new Font(Font.HELVETICA, 11, Font.BOLD, Color.WHITE);
+            Font contentFont = new Font(Font.HELVETICA, 10, Font.NORMAL, Color.BLACK);
+
+            //Encabezado
+            PdfPTable tableEncabezado = new PdfPTable(2);
+            tableEncabezado.setWidthPercentage(100);
+            tableEncabezado.setSpacingAfter(10f);
+            tableEncabezado.setWidths(new float[] { 50, 50 });
+
+            // Título centrado que ocupa las dos columnas
+            PdfPCell header0 = new PdfPCell(new Paragraph("MY CREDENTIALS", titleFont));
+            header0.setColspan(2); // Ocupa las dos columnas
+            header0.setBackgroundColor(new Color(41, 128, 185)); // 26, 188, 156 Verde turquesa
+            header0.setHorizontalAlignment(Element.ALIGN_CENTER);
+            header0.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            header0.setPadding(15f);
+            tableEncabezado.addCell(header0);
+            document.add(tableEncabezado);
+
+            //Subtitulo del documento
+            document.add(new Paragraph("Report date: "+ LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), infoFont));
+            document.add(Chunk.NEWLINE);
+
+            //Tabla y sus columnas
+            PdfPTable table = new PdfPTable(5);
+            table.setWidthPercentage(100);
+            table.setSpacingBefore(10f);
+            table.setSpacingAfter(10f);
+
+            PdfPCell header1 = new PdfPCell(new Paragraph("Platform", headerFont));
+            header1.setBackgroundColor(new Color(41, 128, 185));
+            header1.setHorizontalAlignment(Element.ALIGN_CENTER);
+            table.addCell(header1);
+
+            PdfPCell header2 = new PdfPCell(new Paragraph("URL", headerFont));
+            header2.setBackgroundColor(new Color(41, 128, 185));
+            header2.setHorizontalAlignment(Element.ALIGN_CENTER);
+            table.addCell(header2);
+
+            PdfPCell header3 = new PdfPCell(new Paragraph("Username", headerFont));
+            header3.setBackgroundColor(new Color(41, 128, 185));
+            header3.setHorizontalAlignment(Element.ALIGN_CENTER);
+            table.addCell(header3);
+
+            PdfPCell header4 = new PdfPCell(new Paragraph("Password", headerFont));
+            header4.setBackgroundColor(new Color(41, 128, 185));
+            header4.setHorizontalAlignment(Element.ALIGN_CENTER);
+            table.addCell(header4);
+
+            PdfPCell header5 = new PdfPCell(new Paragraph("Date created", headerFont));
+            header5.setBackgroundColor(new Color(41, 128, 185));
+            header5.setHorizontalAlignment(Element.ALIGN_CENTER);
+            table.addCell(header5);
+
+            //Datos
+            for (PlatformCredential dato: datos){
+                table.addCell(new PdfPCell(new Paragraph(dato.getName(), contentFont)));
+                table.addCell(new PdfPCell(new Paragraph(dato.getUrl(), contentFont)));
+                table.addCell(new PdfPCell(new Paragraph(dato.getUsername(), contentFont)));
+                table.addCell(new PdfPCell(new Paragraph(dato.getPassword(), contentFont)));
+                table.addCell(new PdfPCell(new Paragraph(dato.getCreatedDate().toString(), contentFont)));
+            }
+
+            document.add(table);
+            document.add(Chunk.NEWLINE);
+            document.close();
+        } catch (DocumentException e) {
+            log.error("Hubo un error al generar el PDF de las plataformas: {}", e.getMessage());
+            throw new IllegalArgumentException("Error al generar el PDF de las plataformas: " + e.getMessage());
+        }
+
+        log.info("PDF generado exitosamente!");
+        return baos.toByteArray();
+    }
+
+    //Métodos auxiliares para generar el Excel
     private byte[] generarExcel (List<PlatformCredential> datos){
 
         try {

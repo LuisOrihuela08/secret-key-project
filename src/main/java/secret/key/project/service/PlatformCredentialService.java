@@ -15,5 +15,6 @@ public interface PlatformCredentialService {
     void deletePlatformCredential(String id);
     PlatformCredentialDTO getPlatformCredentialByName (String name);
     List<PlatformCredentialDTO> getAllPlatformCredentials();
-    byte [] exportarPlataformas ();
+    byte [] exportarPlataformasExcel ();
+    byte [] exportarPlataformasPDF();
 }
