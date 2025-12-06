@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mongodb:
     image: mongo:7.0
@@ -13,6 +11,7 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
     networks:
       - secretkey-network
     healthcheck:
@@ -40,8 +39,9 @@ services:
 
 volumes:
   mongodb_data:
-    driver: local
+    name: secretkey-mongodb-data
+  mongodb_config:
+    name: secretkey-mongodb-config
 
 networks:
   secretkey-network:
-    driver: bridge
