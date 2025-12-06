@@ -57,10 +57,19 @@ public class PlatformCredentialController {
 
     @GetMapping("/export/excel")
     public ResponseEntity<byte[]> exportPlatformCredentialExcel() {
-        byte[] excel = platformCredentialService.exportarPlataformas();
+        byte[] excel = platformCredentialService.exportarPlataformasExcel();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
         headers.setContentDisposition(ContentDisposition.attachment().filename("lista-plataformas.xlsx").build());
         return ResponseEntity.status(HttpStatus.OK).headers(headers).body(excel);
+    }
+
+    @GetMapping("/export/pdf")
+    public ResponseEntity<byte[]> exportPlatformCredentialPdf() {
+        byte[] pdf = platformCredentialService.exportarPlataformasPDF();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition.attachment().filename("lista-plataformas.pdf").build());
+        return ResponseEntity.status(HttpStatus.OK).headers(headers).body(pdf);
     }
 }
