@@ -35,6 +35,13 @@ public class GlobalExceptionHandler {
         return construirRespuesta(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
     }
 
+    //Manejar errores del usuario
+    @ExceptionHandler(UsuarioException.class)
+    public ResponseEntity<Map<String, Object>> manejarUsuarioException(UsuarioException exception){
+        log.warn("Error de usuario: {}", exception.getMessage());
+        return construirRespuesta(HttpStatus.UNAUTHORIZED, exception.getMessage());
+    }
+
     private ResponseEntity<Map<String, Object>> construirRespuesta(HttpStatus status, String mensaje){
         return ResponseEntity.status(status).body(Map.of(
                 "status", status.value(),
