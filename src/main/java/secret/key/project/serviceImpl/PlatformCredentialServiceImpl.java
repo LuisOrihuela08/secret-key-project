@@ -175,7 +175,9 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
 
     @Override
     public byte[] exportarPlataformasExcel() {
-        List<PlatformCredential> list = platformCredentialRepository.findAll();
+
+        String userId = getCurrentUserId();
+        List<PlatformCredential> list = platformCredentialRepository.findByUserId(userId);
         return generarExcel(list);
     }
 
