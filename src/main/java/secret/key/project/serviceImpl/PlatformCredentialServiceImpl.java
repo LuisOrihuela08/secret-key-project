@@ -166,7 +166,8 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
     @Override
     public List<PlatformCredentialDTO> getAllPlatformCredentials() {
 
-        List<PlatformCredential> list = platformCredentialRepository.findAll();
+        String userId = getCurrentUserId();
+        List<PlatformCredential> list = platformCredentialRepository.findByUserId(userId);
 
         log.info("Listado de las plataformas OK!");
         return list.stream().map(PlatformCredentialMapper::toDTO).toList();
@@ -181,7 +182,8 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
     @Override
     public byte[] exportarPlataformasPDF() {
 
-        List<PlatformCredential> list = platformCredentialRepository.findAll();
+        String userId = getCurrentUserId();
+        List<PlatformCredential> list = platformCredentialRepository.findByUserId(userId);
         return generarPDF(list);
     }
 
