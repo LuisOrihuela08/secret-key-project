@@ -44,6 +44,7 @@ public class AuthController {
     @PostMapping("/register")
     @Operation(summary = "Registrar nuevo usuario")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest registerRequest){
+
         if (userRepository.existsByUsername(registerRequest.getUsername()))     {
             throw new UsuarioException("El usuario ya existe");
         }

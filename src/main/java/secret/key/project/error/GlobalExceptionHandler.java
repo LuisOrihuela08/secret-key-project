@@ -42,6 +42,12 @@ public class GlobalExceptionHandler {
         return construirRespuesta(HttpStatus.UNAUTHORIZED, exception.getMessage());
     }
 
+    @ExceptionHandler(UsuarioExceptionNoContentException.class)
+    public ResponseEntity<Map<String, Object>> manejarUsuarioExceptionNoContent(UsuarioExceptionNoContentException exception){
+        log.warn("Error de usuario: {}", exception.getMessage());
+        return construirRespuesta(HttpStatus.NO_CONTENT, exception.getMessage());
+    }
+
     private ResponseEntity<Map<String, Object>> construirRespuesta(HttpStatus status, String mensaje){
         return ResponseEntity.status(status).body(Map.of(
                 "status", status.value(),

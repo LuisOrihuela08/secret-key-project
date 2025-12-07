@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface PlatformCredentialRepository extends MongoRepository<PlatformCredential, String> {
 
-    Page<PlatformCredential> findAll (Pageable pageable);
+    Page<PlatformCredential> findByUserId (Pageable pageable, String userId);
     Optional<PlatformCredential>  findByName (String name);
 
     List<PlatformCredential> findByUserId (String userId);
