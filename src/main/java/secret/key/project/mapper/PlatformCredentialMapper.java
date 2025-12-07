@@ -3,6 +3,9 @@ package secret.key.project.mapper;
 import secret.key.project.dto.PlatformCredentialDTO;
 import secret.key.project.entity.PlatformCredential;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class PlatformCredentialMapper {
 
     //esto para evitar instanciarla
@@ -30,5 +33,14 @@ public class PlatformCredentialMapper {
         dto.setPassword(entity.getPassword());
         dto.setCreatedDate(entity.getCreatedDate());
         return dto;
+    }
+
+    public static List<PlatformCredentialDTO> toDTOList(List<PlatformCredential> entities) {
+        if (entities == null) {
+            return List.of(); // o null si lo prefieres
+        }
+        return entities.stream()
+                .map(PlatformCredentialMapper::toDTO)
+                .collect(Collectors.toList());
     }
 }

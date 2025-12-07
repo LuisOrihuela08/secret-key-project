@@ -13,17 +13,22 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import secret.key.project.dto.PlatformCredentialDTO;
 import secret.key.project.entity.PlatformCredential;
+import secret.key.project.entity.User;
 import secret.key.project.error.PlatformCredentialExporException;
 import secret.key.project.error.PlatformCredentialNoEncontradoException;
+import secret.key.project.error.UsuarioException;
 import secret.key.project.mapper.PlatformCredentialMapper;
 import secret.key.project.repository.PlatformCredentialRepository;
 import secret.key.project.service.PlatformCredentialService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -272,5 +277,68 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
         font.setBold(true);
         estilo.setFont(font);
         return estilo;
+    }
+
+    //Seguridad
+    private String getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UsuarioException("Usuario no autenticado");
+        }
+        User user = (User) authentication.getPrincipal();
+        return user.getId();
+    }
+
+    public PlatformCredentialDTO createCredential(PlatformCredentialDTO dto) {
+        String userId = getCurrentUserId();
+
+        if (platformCredentialRepository.existsByUserIdAndName(userId, dto.getName())) {
+            throw new IllegalArgumentException("Ya existe una credencial con ese nombre");
+        }
+
+        PlatformCredential credential = PlatformCredentialMapper.toEntity(dto);
+        credential.setUserId(userId);
+        credential.setCreatedDate(LocalDate.now());
+
+        PlatformCredential saved = platformCredentialRepository.save(credential);
+        return PlatformCredentialMapper.toDTO(saved);
+    }
+
+    public List<PlatformCredentialDTO> getAllCredentials() {
+        String userId = getCurrentUserId();
+        List<PlatformCredential> credentials = platformCredentialRepository.findByUserId(userId);
+        return PlatformCredentialMapper.toDTOList(credentials);
+    }
+
+    public PlatformCredentialDTO getCredentialById(String id) {
+        String userId = getCurrentUserId();
+        PlatformCredential credential = platformCredentialRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new UsuarioException("Credencial no encontrada"));
+        return PlatformCredentialMapper.toDTO(credential);
+    }
+
+    public PlatformCredentialDTO updateCredential(String id, PlatformCredentialDTO dto) {
+        String userId = getCurrentUserId();
+
+        PlatformCredential existing = platformCredentialRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new UsuarioException("Credencial no encontrada"));
+
+        existing.setName(dto.getName());
+        existing.setUrl(dto.getUrl());
+        existing.setUsername(dto.getUsername());
+        existing.setPassword(dto.getPassword());
+
+        PlatformCredential updated = platformCredentialRepository.save(existing);
+        return PlatformCredentialMapper.toDTO(updated);
+    }
+
+
+    public void deleteCredential(String id) {
+        String userId = getCurrentUserId();
+
+        PlatformCredential credential = platformCredentialRepository.findByIdAndUserId(id, userId)
+                .orElseThrow(() -> new UsuarioException("Credencial no encontrada"));
+
+        platformCredentialRepository.delete(credential);
     }
 }
