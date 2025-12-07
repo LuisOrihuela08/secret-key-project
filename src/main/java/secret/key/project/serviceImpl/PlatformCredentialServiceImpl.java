@@ -22,6 +22,7 @@ import secret.key.project.entity.User;
 import secret.key.project.error.PlatformCredentialExporException;
 import secret.key.project.error.PlatformCredentialNoEncontradoException;
 import secret.key.project.error.UsuarioException;
+import secret.key.project.error.UsuarioExceptionNoContentException;
 import secret.key.project.mapper.PlatformCredentialMapper;
 import secret.key.project.repository.PlatformCredentialRepository;
 import secret.key.project.service.PlatformCredentialService;
@@ -43,10 +44,36 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
         this.platformCredentialRepository = platformCredentialRepository;
     }
 
+    //Seguridad
+    private String getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UsuarioException("Usuario no autenticado");
+        }
+        User user = (User) authentication.getPrincipal();
+        return user.getId();
+    }
+
     @Override
     public Page<PlatformCredentialDTO> getPlatformCredentialByPagination(Pageable pageable) {
-        log.info("Listado con paginación de las platformas OK!");
-        return platformCredentialRepository.findAll(pageable).map(PlatformCredentialMapper::toDTO);
+
+        if (pageable.getPageNumber() < 0 || pageable.getPageSize() <= 0){
+            log.error("Paginación inválida: página {} , tamaño {}", pageable.getPageNumber(), pageable.getPageSize());
+            throw new IllegalArgumentException("Los parámetros de paginación no pueden ser nulos o menores o iguales a cero!");
+        }
+
+        String userId = getCurrentUserId();
+        Page<PlatformCredential> credentialPage = platformCredentialRepository.findByUserId(pageable, userId);
+
+
+        if (credentialPage.isEmpty()){
+            log.error("El usuario no tiene plataformas registradas: {}", userId);
+            throw new UsuarioExceptionNoContentException("El usuario no tiene plataformas registradas!");
+        }
+
+        log.info("Listado con paginación de las platformas OK! del usuario: {}", userId);
+        return credentialPage.map(PlatformCredentialMapper::toDTO);
     }
 
     @Override
@@ -56,32 +83,51 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
             throw new IllegalArgumentException("La plataforma no puede ser nula!");
         }
 
+        String userId = getCurrentUserId();
+
+        if (platformCredentialRepository.existsByUserIdAndName(userId, platformCredentialDTO.getName())){
+            log.error("La plataforma : {} ya existe!", platformCredentialDTO.getName());
+            throw new PlatformCredentialExporException(("Ya existe una plataforma registrada con el nombre: " + platformCredentialDTO.getName()));
+        }
+
         PlatformCredential entity = PlatformCredentialMapper.toEntity(platformCredentialDTO);
+
+        entity.setUserId(userId);
+        //entity.setCreatedDate(LocalDate.now());
         PlatformCredential saved =  platformCredentialRepository.save(entity);
 
-        log.info("Plataforma registrada: {}", saved);
+        log.info("Plataforma registrada: {}, del usuario: {}", saved, userId);
         return PlatformCredentialMapper.toDTO(saved);
     }
 
     @Override
     public PlatformCredentialDTO updatePlarformCredential(PlatformCredentialDTO platformCredentialDTO, String id) {
 
-    if (id == null){
-        throw new IllegalArgumentException("El id no puede ser nulo!!");
+    if (id == null || platformCredentialDTO == null){
+        log.error("La plataforma y/o no puede ser nulo");
+        throw new IllegalArgumentException("El id y/o plataforma no puede ser nulo!!");
     }
 
-    PlatformCredential entity = platformCredentialRepository.findById(id).orElseThrow(() -> {
-        log.error("Error al actualizar, plataforma no encontrada con el id: {}", id);
-        return new PlatformCredentialNoEncontradoException("Plataforma no encontrada! con el id: " + id);
-    });
+    String userId = getCurrentUserId();
 
-    entity.setName(platformCredentialDTO.getName());
-    entity.setUrl(platformCredentialDTO.getUrl());
-    entity.setUsername(platformCredentialDTO.getUsername());
-    entity.setPassword(platformCredentialDTO.getPassword());
-    entity.setCreatedDate(platformCredentialDTO.getCreatedDate());
+    PlatformCredential existing = platformCredentialRepository.findByIdAndUserId(id, userId).orElseThrow(() ->
+               new UsuarioException("Plataforma no encontrada con el id: " + id + " para el usuario: " + userId));
 
-    PlatformCredential saved = platformCredentialRepository.save(entity);
+    if (!existing.getName().equals(platformCredentialDTO.getName())){
+        if (platformCredentialRepository.existsByUserIdAndName(userId, platformCredentialDTO.getName())){
+            log.error("La plataforma: {} ya existe ", platformCredentialDTO.getName());
+            throw new IllegalArgumentException("Ya existe una plataforma registrada con el nombre: " + platformCredentialDTO.getName());
+        }
+    }
+
+
+        existing.setName(platformCredentialDTO.getName());
+        existing.setUrl(platformCredentialDTO.getUrl());
+        existing.setUsername(platformCredentialDTO.getUsername());
+        existing.setPassword(platformCredentialDTO.getPassword());
+        existing.setCreatedDate(platformCredentialDTO.getCreatedDate());
+
+    PlatformCredential saved = platformCredentialRepository.save(existing);
 
     log.info("Plataforma actualizada: {}", saved);
     return PlatformCredentialMapper.toDTO(saved);
@@ -279,66 +325,5 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
         return estilo;
     }
 
-    //Seguridad
-    private String getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UsuarioException("Usuario no autenticado");
-        }
-        User user = (User) authentication.getPrincipal();
-        return user.getId();
-    }
 
-    public PlatformCredentialDTO createCredential(PlatformCredentialDTO dto) {
-        String userId = getCurrentUserId();
-
-        if (platformCredentialRepository.existsByUserIdAndName(userId, dto.getName())) {
-            throw new IllegalArgumentException("Ya existe una credencial con ese nombre");
-        }
-
-        PlatformCredential credential = PlatformCredentialMapper.toEntity(dto);
-        credential.setUserId(userId);
-        credential.setCreatedDate(LocalDate.now());
-
-        PlatformCredential saved = platformCredentialRepository.save(credential);
-        return PlatformCredentialMapper.toDTO(saved);
-    }
-
-    public List<PlatformCredentialDTO> getAllCredentials() {
-        String userId = getCurrentUserId();
-        List<PlatformCredential> credentials = platformCredentialRepository.findByUserId(userId);
-        return PlatformCredentialMapper.toDTOList(credentials);
-    }
-
-    public PlatformCredentialDTO getCredentialById(String id) {
-        String userId = getCurrentUserId();
-        PlatformCredential credential = platformCredentialRepository.findByIdAndUserId(id, userId)
-                .orElseThrow(() -> new UsuarioException("Credencial no encontrada"));
-        return PlatformCredentialMapper.toDTO(credential);
-    }
-
-    public PlatformCredentialDTO updateCredential(String id, PlatformCredentialDTO dto) {
-        String userId = getCurrentUserId();
-
-        PlatformCredential existing = platformCredentialRepository.findByIdAndUserId(id, userId)
-                .orElseThrow(() -> new UsuarioException("Credencial no encontrada"));
-
-        existing.setName(dto.getName());
-        existing.setUrl(dto.getUrl());
-        existing.setUsername(dto.getUsername());
-        existing.setPassword(dto.getPassword());
-
-        PlatformCredential updated = platformCredentialRepository.save(existing);
-        return PlatformCredentialMapper.toDTO(updated);
-    }
-
-
-    public void deleteCredential(String id) {
-        String userId = getCurrentUserId();
-
-        PlatformCredential credential = platformCredentialRepository.findByIdAndUserId(id, userId)
-                .orElseThrow(() -> new UsuarioException("Credencial no encontrada"));
-
-        platformCredentialRepository.delete(credential);
-    }
 }
