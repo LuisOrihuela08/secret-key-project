@@ -37,10 +37,10 @@ jobs: #conjunto de tareas
 
       - name: Build Docker image
         run: |
-          docker build -t luisorihuela92/back-test:latest .
-          docker build -t luisorihuela92/back-test:${{ github.sha }} .
+          docker build -t luisorihuela92/secret-key-backend:latest .
+          docker build -t luisorihuela92/secret-key-backend:${{ github.sha }} .
 
       - name: Push Docker image to Docker Hub
         run: |
-          docker push luisorihuela92/back-test:latest
-          docker push luisorihuela92/back-test:${{ github.sha }}
+          docker push luisorihuela92/secret-key-backend:latest
+          docker push luisorihuela92/secret-key-backend:${{ github.sha }}
