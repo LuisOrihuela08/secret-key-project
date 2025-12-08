@@ -20,11 +20,9 @@ services:
       timeout: 5s
       retries: 5
 
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: secretkey-app
+  secret-key-backend:
+    image: luisorihuela92/secret-key-backend:latest
+    container_name: secretkey-app-backend
     restart: unless-stopped
     ports:
       - "8080:8080"
