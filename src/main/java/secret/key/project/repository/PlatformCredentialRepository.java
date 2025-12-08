@@ -16,5 +16,5 @@ public interface PlatformCredentialRepository extends MongoRepository<PlatformCr
     List<PlatformCredential> findByUserId (String userId);
     Optional<PlatformCredential> findByIdAndUserId (String id, String userId);
     boolean existsByUserIdAndName (String userId, String name);
-    void deleteByUserId (String userId);
+
 }
