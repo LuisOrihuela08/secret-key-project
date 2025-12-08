@@ -50,8 +50,17 @@ La API cuenta con documentación generada automáticamente con Swagger. Puedes a
 ```bash
    http://localhost:8080/swagger-ui-custom.html
    ```
-<img width="1353" height="838" alt="Image" src="https://github.com/user-attachments/assets/5a1ca289-2754-4d24-90bb-2fdd1f91172a" />
+<img width="1090" height="1020" alt="Image" src="https://github.com/user-attachments/assets/a7d64656-caf9-4db8-b5c6-4ba05f10a296" />
 
+Desde alli, podemos probar todos los endpoints disponibles en la API. Pero, primero tenemos que crear una cuenta o logearnos si es necesario.
+Una vez autenticados, podemos gestionar nuestras credenciales y generar reportes.
+
+<img width="1080" height="436" alt="Image" src="https://github.com/user-attachments/assets/b83c35b7-1a4f-484b-ab46-3d8ed4b112db" />
+<img width="1094" height="1039" alt="Image" src="https://github.com/user-attachments/assets/c34ded6d-c4a7-46a8-8655-034f228b96b4" />
+<img width="1096" height="1106" alt="Image" src="https://github.com/user-attachments/assets/18fbc726-5636-4887-8532-15e544863a76" />
+
+Y listo, podemos realizar todas las operaciones CRUD sobre nuestras credenciales.
+<img width="1091" height="893" alt="Image" src="https://github.com/user-attachments/assets/310e25a5-9fc5-45ce-866c-7895978adb86" />
 
 
 2️⃣ Reportes
