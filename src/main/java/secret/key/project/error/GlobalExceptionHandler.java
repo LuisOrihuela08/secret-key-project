@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UsuarioException.class)
     public ResponseEntity<Map<String, Object>> manejarUsuarioException(UsuarioException exception){
         log.warn("Error de usuario: {}", exception.getMessage());
-        return construirRespuesta(HttpStatus.UNAUTHORIZED, exception.getMessage());
+        return construirRespuesta(HttpStatus.NOT_FOUND, exception.getMessage());
     }
 
     @ExceptionHandler(UsuarioExceptionNoContentException.class)
