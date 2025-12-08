@@ -34,7 +34,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Slf4j
@@ -161,15 +160,13 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
     @Override
     public PlatformCredentialDTO getPlatformCredentialByName(String name) {
 
-        String userId = getCurrentUserId();
-
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("El nombre no puede ser nulo o vacio!!");
         }
 
-        PlatformCredential entity = platformCredentialRepository.findByNameAndUserId(name, userId).orElseThrow(() -> {
-            log.error("Plataforma no encontrada con el nombre: {}", name);
-            return new PlatformCredentialNoEncontradoException("Plataforma no encontrada con el nombre: " + name + " para el usuario: " + userId);
+        PlatformCredential entity = platformCredentialRepository.findByName(name).orElseThrow(() -> {
+            log.error("Error al buscar, plataforma no encontrada con el nombre: {}", name);
+            return new PlatformCredentialNoEncontradoException("Plataforma no encontrada con el nombre: " + name);
         });
 
         log.info("Plataforma encontrada: {}", entity);
