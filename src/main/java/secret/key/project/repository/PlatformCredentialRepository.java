@@ -11,8 +11,7 @@ import java.util.Optional;
 public interface PlatformCredentialRepository extends MongoRepository<PlatformCredential, String> {
 
     Page<PlatformCredential> findByUserId (Pageable pageable, String userId);
-    Optional<PlatformCredential>  findByName (String name);
-
+    Optional<PlatformCredential> findByNameAndUserId (String name, String userId);
     List<PlatformCredential> findByUserId (String userId);
     Optional<PlatformCredential> findByIdAndUserId (String id, String userId);
     boolean existsByUserIdAndName (String userId, String name);
