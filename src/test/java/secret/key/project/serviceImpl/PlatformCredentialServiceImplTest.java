@@ -23,10 +23,12 @@ import secret.key.project.dto.PlatformCredentialDTO;
 import secret.key.project.entity.PlatformCredential;
 import secret.key.project.entity.User;
 import secret.key.project.error.UsuarioException;
+import secret.key.project.error.UsuarioExceptionNoContentException;
 import secret.key.project.repository.PlatformCredentialRepository;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -148,6 +150,20 @@ public class PlatformCredentialServiceImplTest {
                 PageRequest.of(-1, 10);
             });
             log.info("Prueba de validación de Spring PageRequest pasada correctamente.");
+        }
+
+        @Test
+        @DisplayName("Debe lanzar una excepción cuando la página este vacia")
+        void shouldThrowExceptionWhenPageIsEmpty(){
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<PlatformCredential> emptyPage = new PageImpl<>(Collections.emptyList());
+
+            when(platformCredentialRepository.findByUserId(pageable, userId)).thenReturn(emptyPage);
+
+            assertThrows(UsuarioExceptionNoContentException.class, () -> {
+                platformCredentialServiceImpl.getPlatformCredentialByPagination(pageable);
+            });
+            log.info("Prueba de página vacia pasada correctamente");
         }
     }
 }
