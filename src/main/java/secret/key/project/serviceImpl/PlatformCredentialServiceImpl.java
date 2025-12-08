@@ -1,4 +1,5 @@
 package secret.key.project.serviceImpl;
+
 import java.awt.Color;
 
 import com.lowagie.text.*;
@@ -40,7 +41,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
 
     private final PlatformCredentialRepository platformCredentialRepository;
 
-    public PlatformCredentialServiceImpl(PlatformCredentialRepository platformCredentialRepository){
+    public PlatformCredentialServiceImpl(PlatformCredentialRepository platformCredentialRepository) {
         this.platformCredentialRepository = platformCredentialRepository;
     }
 
@@ -58,7 +59,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
     @Override
     public Page<PlatformCredentialDTO> getPlatformCredentialByPagination(Pageable pageable) {
 
-        if (pageable.getPageNumber() < 0 || pageable.getPageSize() <= 0){
+        if (pageable.getPageNumber() < 0 || pageable.getPageSize() <= 0) {
             log.error("Paginación inválida: página {} , tamaño {}", pageable.getPageNumber(), pageable.getPageSize());
             throw new IllegalArgumentException("Los parámetros de paginación no pueden ser nulos o menores o iguales a cero!");
         }
@@ -67,7 +68,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
         Page<PlatformCredential> credentialPage = platformCredentialRepository.findByUserId(pageable, userId);
 
 
-        if (credentialPage.isEmpty()){
+        if (credentialPage.isEmpty()) {
             log.error("El usuario no tiene plataformas registradas: {}", userId);
             throw new UsuarioExceptionNoContentException("El usuario no tiene plataformas registradas!");
         }
@@ -79,13 +80,13 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
     @Override
     public PlatformCredentialDTO createPlatformCredential(PlatformCredentialDTO platformCredentialDTO) {
 
-        if(platformCredentialDTO == null){
+        if (platformCredentialDTO == null) {
             throw new IllegalArgumentException("La plataforma no puede ser nula!");
         }
 
         String userId = getCurrentUserId();
 
-        if (platformCredentialRepository.existsByUserIdAndName(userId, platformCredentialDTO.getName())){
+        if (platformCredentialRepository.existsByUserIdAndName(userId, platformCredentialDTO.getName())) {
             log.error("La plataforma : {} ya existe!", platformCredentialDTO.getName());
             throw new PlatformCredentialExporException(("Ya existe una plataforma registrada con el nombre: " + platformCredentialDTO.getName()));
         }
@@ -94,7 +95,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
 
         entity.setUserId(userId);
         //entity.setCreatedDate(LocalDate.now());
-        PlatformCredential saved =  platformCredentialRepository.save(entity);
+        PlatformCredential saved = platformCredentialRepository.save(entity);
 
         log.info("Plataforma registrada: {}, del usuario: {}", saved, userId);
         return PlatformCredentialMapper.toDTO(saved);
@@ -103,22 +104,25 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
     @Override
     public PlatformCredentialDTO updatePlarformCredential(PlatformCredentialDTO platformCredentialDTO, String id) {
 
-    if (id == null || platformCredentialDTO == null){
-        log.error("La plataforma y/o no puede ser nulo");
-        throw new IllegalArgumentException("El id y/o plataforma no puede ser nulo!!");
-    }
-
-    String userId = getCurrentUserId();
-
-    PlatformCredential existing = platformCredentialRepository.findByIdAndUserId(id, userId).orElseThrow(() ->
-               new UsuarioException("Plataforma no encontrada con el id: " + id + " para el usuario: " + userId));
-
-    if (!existing.getName().equals(platformCredentialDTO.getName())){
-        if (platformCredentialRepository.existsByUserIdAndName(userId, platformCredentialDTO.getName())){
-            log.error("La plataforma: {} ya existe ", platformCredentialDTO.getName());
-            throw new IllegalArgumentException("Ya existe una plataforma registrada con el nombre: " + platformCredentialDTO.getName());
+        if (id == null || platformCredentialDTO == null) {
+            log.error("La plataforma y/o no puede ser nulo");
+            throw new IllegalArgumentException("El id y/o plataforma no puede ser nulo!!");
         }
-    }
+
+        String userId = getCurrentUserId();
+
+        PlatformCredential existing = platformCredentialRepository.findByIdAndUserId(id, userId).orElseThrow(() -> {
+            log.error("Error al actualizar, la plataforma no encontrada con el id: {}", id);
+            return new UsuarioExceptionNoContentException("Plataforma no encontrada con el id: " + id + " para el usuario: " + userId);
+
+        });
+
+        if (!existing.getName().equals(platformCredentialDTO.getName())) {
+            if (platformCredentialRepository.existsByUserIdAndName(userId, platformCredentialDTO.getName())) {
+                log.error("La plataforma: {} ya existe ", platformCredentialDTO.getName());
+                throw new IllegalArgumentException("Ya existe una plataforma registrada con el nombre: " + platformCredentialDTO.getName());
+            }
+        }
 
 
         existing.setName(platformCredentialDTO.getName());
@@ -127,30 +131,36 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
         existing.setPassword(platformCredentialDTO.getPassword());
         existing.setCreatedDate(platformCredentialDTO.getCreatedDate());
 
-    PlatformCredential saved = platformCredentialRepository.save(existing);
+        PlatformCredential saved = platformCredentialRepository.save(existing);
 
-    log.info("Plataforma actualizada: {}", saved);
-    return PlatformCredentialMapper.toDTO(saved);
+        log.info("Plataforma actualizada: {}", saved);
+        return PlatformCredentialMapper.toDTO(saved);
     }
 
     @Override
     public void deletePlatformCredential(String id) {
 
-        if (id == null){
+        String userId = getCurrentUserId();
+
+        if (id == null) {
+            log.error("El id de la plataforma no puede ser nulo");
             throw new IllegalArgumentException("El id no puede ser nulo!!");
-        } else if (!platformCredentialRepository.existsById(id)){
-            log.error("Error al eliminar, plataforma no encontrada con el id: {}", id);
-            throw new PlatformCredentialNoEncontradoException("Plataforma no encontrada con el id:" + id);
         }
 
-        platformCredentialRepository.deleteById(id);
+        PlatformCredential existing = platformCredentialRepository.findByIdAndUserId(id, userId).orElseThrow(() -> {
+            log.error("Error al eliminar, la plataforma no encontrada con el id: {}", id);
+            return new UsuarioExceptionNoContentException("Plataforma no encontrada con el id: " + id + " para el usuario: " + userId);
+
+        });
+
+        platformCredentialRepository.delete(existing);
         log.info("Plataforma eliminada!");
     }
 
     @Override
     public PlatformCredentialDTO getPlatformCredentialByName(String name) {
 
-        if (name == null || name.isEmpty()){
+        if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("El nombre no puede ser nulo o vacio!!");
         }
 
@@ -190,7 +200,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
     }
 
     //Métodos auxiliares para generar PDF
-    private byte[] generarPDF (List<PlatformCredential> datos) {
+    private byte[] generarPDF(List<PlatformCredential> datos) {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         Document document = new Document();
@@ -209,7 +219,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
             PdfPTable tableEncabezado = new PdfPTable(2);
             tableEncabezado.setWidthPercentage(100);
             tableEncabezado.setSpacingAfter(10f);
-            tableEncabezado.setWidths(new float[] { 50, 50 });
+            tableEncabezado.setWidths(new float[]{50, 50});
 
             // Título centrado que ocupa las dos columnas
             PdfPCell header0 = new PdfPCell(new Paragraph("MY CREDENTIALS", titleFont));
@@ -222,7 +232,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
             document.add(tableEncabezado);
 
             //Subtitulo del documento
-            document.add(new Paragraph("Report date: "+ LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), infoFont));
+            document.add(new Paragraph("Report date: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), infoFont));
             document.add(Chunk.NEWLINE);
 
             //Tabla y sus columnas
@@ -257,7 +267,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
             table.addCell(header5);
 
             //Datos
-            for (PlatformCredential dato: datos){
+            for (PlatformCredential dato : datos) {
                 table.addCell(new PdfPCell(new Paragraph(dato.getName(), contentFont)));
                 table.addCell(new PdfPCell(new Paragraph(dato.getUrl(), contentFont)));
                 table.addCell(new PdfPCell(new Paragraph(dato.getUsername(), contentFont)));
@@ -278,16 +288,16 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
     }
 
     //Métodos auxiliares para generar el Excel
-    private byte[] generarExcel (List<PlatformCredential> datos){
+    private byte[] generarExcel(List<PlatformCredential> datos) {
 
         try {
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Lista de credenciales de plataformas");
 
             Row headerRow = sheet.createRow(0);
-            String [] columnas = {"Plataforma", "URL", "Username", "Password", "Fecha de creación"};
+            String[] columnas = {"Plataforma", "URL", "Username", "Password", "Fecha de creación"};
 
-            for (int i=0; i<columnas.length; i++){
+            for (int i = 0; i < columnas.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(columnas[i]);
                 cell.setCellStyle(crearEstiloEncabezado(workbook));
@@ -295,7 +305,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             int rowNum = 1;
-            for (PlatformCredential entity: datos){
+            for (PlatformCredential entity : datos) {
                 Row row = sheet.createRow(rowNum++);
                 row.createCell(0).setCellValue(entity.getName());
                 row.createCell(1).setCellValue(entity.getUrl());
@@ -304,7 +314,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
                 row.createCell(4).setCellValue(entity.getCreatedDate().format(formatter));
             }
 
-            for (int i=0; i<columnas.length; i++){
+            for (int i = 0; i < columnas.length; i++) {
                 sheet.autoSizeColumn(i);
             }
 

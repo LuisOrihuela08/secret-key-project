@@ -39,13 +39,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UsuarioException.class)
     public ResponseEntity<Map<String, Object>> manejarUsuarioException(UsuarioException exception){
         log.warn("Error de usuario: {}", exception.getMessage());
-        return construirRespuesta(HttpStatus.UNAUTHORIZED, exception.getMessage());
+        return construirRespuesta(HttpStatus.NOT_FOUND, exception.getMessage());
     }
 
     @ExceptionHandler(UsuarioExceptionNoContentException.class)
     public ResponseEntity<Map<String, Object>> manejarUsuarioExceptionNoContent(UsuarioExceptionNoContentException exception){
         log.warn("Error de usuario: {}", exception.getMessage());
-        return construirRespuesta(HttpStatus.NO_CONTENT, exception.getMessage());
+        return construirRespuesta(HttpStatus.NOT_FOUND, exception.getMessage());
     }
 
     private ResponseEntity<Map<String, Object>> construirRespuesta(HttpStatus status, String mensaje){
