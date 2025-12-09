@@ -184,6 +184,11 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
         String userId = getCurrentUserId();
         List<PlatformCredential> list = platformCredentialRepository.findByUserId(userId);
 
+        if(list.isEmpty()){
+            log.error("La lista de plataformas esta vacia para el usuario: {}", userId);
+            throw new PlatformCredentialNoEncontradoException("El usuario no tiene plataformas registradas!");
+        }
+
         log.info("Listado de las plataformas OK!");
         return list.stream().map(PlatformCredentialMapper::toDTO).toList();
     }

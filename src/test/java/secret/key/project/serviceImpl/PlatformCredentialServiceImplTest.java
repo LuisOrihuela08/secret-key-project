@@ -394,4 +394,36 @@ public class PlatformCredentialServiceImplTest {
         }
     }
 
+    @Nested
+    @DisplayName("Test para getAllPlatformCredentials")
+    class getAllPlatformCredentialsTests {
+
+        @Test
+        @DisplayName("Debe lanzar una excepción cuando la lista de plataformas credential esta vacia")
+        void shouldThrowExceptionWhenNotPlatformCredentialsExist(){
+
+            when(platformCredentialRepository.findByUserId(userId)).thenReturn(Collections.emptyList());
+
+            assertThrows(PlatformCredentialNoEncontradoException.class, () -> {
+                platformCredentialServiceImpl.getAllPlatformCredentials();
+            });
+            log.info("Prueba de obtener todas las plataformas credential cuando no existen pasada correctamente.");
+        }
+
+        @Test
+        @DisplayName("Debe obtener todas las Plataformas Credential correctamente")
+        void shouldGetAllPlatformCredentialsSuccessfully(){
+
+            List<PlatformCredential> credentials = Arrays.asList(platformCredential);
+            when(platformCredentialRepository.findByUserId(userId)).thenReturn(credentials);
+
+            List<PlatformCredentialDTO> result = platformCredentialServiceImpl.getAllPlatformCredentials();
+
+            assertNotNull(result);
+            assertEquals(credentials.size(), result.size());
+            verify(platformCredentialRepository, times(1)).findByUserId(userId);
+            log.info("Prueba de obtener todas las plataformas Credential correctamente.");
+        }
+    }
+
 }
