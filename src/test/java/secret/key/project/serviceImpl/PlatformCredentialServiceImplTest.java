@@ -426,4 +426,33 @@ public class PlatformCredentialServiceImplTest {
         }
     }
 
+    @Nested
+    @DisplayName("Test para exportPlatformCredentialsPDF")
+    class exportPlatformCredentialsPDFTests {
+
+        @Test
+        @DisplayName("Debe lanzar una excepción cuando no hay plataformas credential para exportar")
+        void shouldThrowExceptionWhenNoPlatformCredentialsToExportPDF(){
+
+            when(platformCredentialRepository.findByUserId(userId)).thenReturn(Collections.emptyList());
+
+            assertThrows(PlatformCredentialNoEncontradoException.class, () -> {
+                platformCredentialServiceImpl.exportarPlataformasPDF();
+            });
+            log.info("Prueba de exportar plataformas credential a PDF cuando no existen pasada correctamente.");
+        }
+
+        @Test
+        @DisplayName("Debe exportar las Plataformas Credential a PDF correctamente")
+        void shouldExportPlatformCredentialsToPDFSuccessfully(){
+
+            when(platformCredentialRepository.findByUserId(userId)).thenReturn(Arrays.asList(platformCredential));
+
+            platformCredentialServiceImpl.exportarPlataformasPDF();
+
+            verify(platformCredentialRepository, times(1)).findByUserId(userId);
+            log.info("Prueba de exportar plataformas Credential a PDF correctamente.");
+        }
+    }
+
 }

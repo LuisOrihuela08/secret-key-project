@@ -198,6 +198,12 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
 
         String userId = getCurrentUserId();
         List<PlatformCredential> list = platformCredentialRepository.findByUserId(userId);
+
+        if (list.isEmpty()){
+            log.error("Error al generar Excel, la lista de plataformas para el usuario: {} esta vacia", userId);
+            throw new PlatformCredentialNoEncontradoException("El usuario no tiene plataformas registradas para generar el Excel!");
+        }
+
         return generarExcel(list);
     }
 
@@ -206,6 +212,12 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
 
         String userId = getCurrentUserId();
         List<PlatformCredential> list = platformCredentialRepository.findByUserId(userId);
+
+        if (list.isEmpty()){
+            log.error("Error al generar PDF, La lista de plataformas para el usuario: {} esta vacia", userId);
+            throw new PlatformCredentialNoEncontradoException("El usuario no tiene plataformas registradas para generar el PDF!");
+        }
+
         return generarPDF(list);
     }
 
