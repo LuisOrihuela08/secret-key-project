@@ -83,4 +83,25 @@ public class PlatformCredentialControllerTest {
 
         }
     }
+
+    @Nested
+    @DisplayName("Test GET /name - Debe retornar plataforma por nombre exitosamente")
+    class FindPlatformCredentialsName{
+
+        @Test
+        void testFindPlatformCredentialsName(){
+
+            when(platformCredentialService.getPlatformCredentialByName("Netflix")).thenReturn(platformCredentialDTO);
+
+            ResponseEntity<PlatformCredentialDTO> result = platformCredentialController.findPlatformCredentialByName("Netflix");
+
+            assertNotNull(result);
+            assertNotNull(result.getBody());
+            assertEquals(HttpStatus.OK, result.getStatusCode());
+            assertEquals("Netflix", result.getBody().getName());
+            assertEquals(platformCredentialDTO.getId(), result.getBody().getId().toString());
+            verify(platformCredentialService, times(1)).getPlatformCredentialByName(anyString());
+            log.info("Prueba de petición HTTP GET plataforma por nombre exitosa.");
+        }
+    }
 }
