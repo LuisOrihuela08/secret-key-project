@@ -455,4 +455,33 @@ public class PlatformCredentialServiceImplTest {
         }
     }
 
+    @Nested
+    @DisplayName("Test para exportPlatformCredentialsExcel")
+    class exportPlatformCredentialsExcelTests {
+
+        @Test
+        @DisplayName("Debe lanzar una excepción cuando no hay plataformas credential para exportar")
+        void shouldThrowExceptionWhenNoPlatformCredentialsToExportExcel() {
+
+            when(platformCredentialRepository.findByUserId(userId)).thenReturn(Collections.emptyList());
+
+            assertThrows(PlatformCredentialNoEncontradoException.class, () -> {
+                platformCredentialServiceImpl.exportarPlataformasExcel();
+            });
+            log.info("Prueba de exportar plataformas credential a Excel cuando no existen pasada correctamente.");
+        }
+
+        @Test
+        @DisplayName("Debe exportar las Plataformas Credential a Excel correctamente")
+        void shouldExportPlatformCredentialsToExcelSuccessfully() {
+
+            when(platformCredentialRepository.findByUserId(userId)).thenReturn(Arrays.asList(platformCredential));
+
+            platformCredentialServiceImpl.exportarPlataformasExcel();
+
+            verify(platformCredentialRepository, times(1)).findByUserId(userId);
+            log.info("Prueba de exportar plataformas Credential a Excel correctamente.");
+        }
+    }
+
 }
