@@ -23,6 +23,7 @@ import secret.key.project.dto.PlatformCredentialDTO;
 import secret.key.project.entity.PlatformCredential;
 import secret.key.project.entity.User;
 import secret.key.project.error.PlatformCredentialExporException;
+import secret.key.project.error.PlatformCredentialNoEncontradoException;
 import secret.key.project.error.UsuarioException;
 import secret.key.project.error.UsuarioExceptionNoContentException;
 import secret.key.project.repository.PlatformCredentialRepository;
@@ -292,6 +293,49 @@ public class PlatformCredentialServiceImplTest {
 
             log.info("Prueba de actualizar plataforma Credential correctamente");
 
+        }
+    }
+
+    @Nested
+    @DisplayName("Test para deletePlatformCredential")
+    class  deletePlatformCredentialTests {
+
+        @Test
+        @DisplayName("Debe lanzar una excepción cuando el id de la plataforma credential es nulo")
+        void shouldThrowExceptionWhenPlatformCredentialIdIsNull() {
+
+            assertThrows(IllegalArgumentException.class, () -> {
+                platformCredentialServiceImpl.deletePlatformCredential(null);
+            });
+            log.info("Prueba de eliminar plataforma credential id nulo pasada correctamente");
+        }
+
+        @Test
+        @DisplayName("Debe lanzar una excepción cuando el id de la plataforma credential no existe")
+        void shouldThrowExceptionWhenPlatformCredentialIdDoesNotExist() {
+            String credentialId = "123-ga";
+
+            when(platformCredentialRepository.findByIdAndUserId(credentialId, userId)).thenReturn(Optional.empty());
+
+            assertThrows(PlatformCredentialNoEncontradoException.class, () -> {
+                platformCredentialServiceImpl.deletePlatformCredential(credentialId);
+            });
+            log.info("Prueba de eliminar plataforma credential id no existente pasada correctamente");
+
+        }
+
+        @Test
+        @DisplayName("Debe eliminar la Plataforma Credential correctamente")
+        void shouldDeletePlatformCredentialSuccessfully() {
+
+            String credentialId = platformCredential.getId();
+
+            when(platformCredentialRepository.findByIdAndUserId(credentialId, userId)).thenReturn(Optional.of(platformCredential));
+
+            platformCredentialServiceImpl.deletePlatformCredential(credentialId);
+
+            verify(platformCredentialRepository, times(1)).delete(platformCredential);
+            log.info("Prueba de eliminar plataforma Credential correctamente");
         }
     }
 

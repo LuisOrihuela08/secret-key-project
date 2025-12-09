@@ -151,7 +151,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
 
         PlatformCredential existing = platformCredentialRepository.findByIdAndUserId(id, userId).orElseThrow(() -> {
             log.error("Error al eliminar, la plataforma no encontrada con el id: {}", id);
-            return new UsuarioExceptionNoContentException("Plataforma no encontrada con el id: " + id + " para el usuario: " + userId);
+            return new PlatformCredentialNoEncontradoException("Plataforma no encontrada con el id: " + id + " para el usuario: " + userId);
 
         });
 
