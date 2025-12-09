@@ -165,6 +165,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
         String userId = getCurrentUserId();
 
         if (name == null || name.isEmpty()) {
+            log.error("La plataforma no puede ser nula o vacia");
             throw new IllegalArgumentException("El nombre no puede ser nulo o vacio!!");
         }
 

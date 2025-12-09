@@ -339,4 +339,59 @@ public class PlatformCredentialServiceImplTest {
         }
     }
 
+    @Nested
+    @DisplayName("Test para getPlatformCredentialByName")
+    class  getPlatformCredentialByNameTets{
+
+        @Test
+        @DisplayName("Debe lanzar una excepción cuando el nombre de la plataforma credential es nulo")
+        void shouldThrowExceptionWhenPlatformCredentialNameIsNull(){
+
+            assertThrows(IllegalArgumentException.class, () -> {
+                platformCredentialServiceImpl.getPlatformCredentialByName(null);
+            });
+            log.info("Prueba de obtener plataforma credential por nombre nulo pasada correctamente");
+        }
+
+        @Test
+        @DisplayName("Debe lanzar una exepción cuando el nombre de la plataforma sea vacio")
+        void shouldThrowExceptionWhenPlatformCredentialNameIsEmpty(){
+
+            assertThrows(IllegalArgumentException.class, () -> {
+                platformCredentialServiceImpl.getPlatformCredentialByName("");
+            });
+            log.info("Prueba de obtener plataforma credential por nombre vacio pasada correctamente");
+        }
+
+        @Test
+        @DisplayName("Debe lanzar una excepción cuando el nombre de la plataforma credential no existe")
+        void shouldThrowExceptionWhenPlatformCredentialNameDoesNotExist(){
+
+            String credentialName = "JetBrains";
+
+            when(platformCredentialRepository.findByNameAndUserId(credentialName, userId)).thenReturn(Optional.empty());
+
+            assertThrows(PlatformCredentialNoEncontradoException.class, () -> {
+                platformCredentialServiceImpl.getPlatformCredentialByName(credentialName);
+            });
+            log.info("Prueba de obtener plataforma credential por nombre no existente pasada correctamente");
+        }
+
+        @Test
+        @DisplayName("Debe obtener la Plataforma Credential por nombre correctamente")
+        void shouldGetPlatformCredentialByNameSuccessfully(){
+
+            String credentialName = platformCredential.getName();
+
+            when(platformCredentialRepository.findByNameAndUserId(credentialName, userId)).thenReturn(Optional.of(platformCredential));
+
+            PlatformCredentialDTO result = platformCredentialServiceImpl.getPlatformCredentialByName(credentialName);
+
+            assertNotNull(result);
+            assertEquals("Github", result.getName());
+            verify(platformCredentialRepository, times(1)).findByNameAndUserId(credentialName, userId);
+            log.info("Prueba de obtener plataforma Credential por nombre correctamente");
+        }
+    }
+
 }
