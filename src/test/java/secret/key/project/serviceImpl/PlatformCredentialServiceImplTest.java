@@ -28,10 +28,7 @@ import secret.key.project.error.UsuarioExceptionNoContentException;
 import secret.key.project.repository.PlatformCredentialRepository;
 
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -208,6 +205,93 @@ public class PlatformCredentialServiceImplTest {
             assertEquals("https://github.com", result.getUrl());
             verify(platformCredentialRepository, times(1)).save(any(PlatformCredential.class));
             log.info("Prueba de crear plataforma Credential correctamente");
+        }
+    }
+
+    @Nested
+    @DisplayName("Test para updatePlatformCredential")
+    class updatePlatformCredentialTests {
+
+        @Test
+        @DisplayName("Debe lanzar una exepción cuando la Plataforma Credential no existe")
+        void shouldThrowExceptionWhenPlatformCredentialDoesNotExist() {
+
+            assertThrows(IllegalArgumentException.class, () -> {
+                platformCredentialServiceImpl.updatePlarformCredential(null, platformCredentialDTO.getId());
+            });
+            log.info("Prueba de actualizar plataforma credential nula pasada correctamente");
+        }
+
+        @Test
+        @DisplayName("Debe lanzar una excepción cuando el id la plataforma credential es nulo ")
+        void shouldThrowExceptionWhenPlatformCredentialIdIsNull() {
+
+            assertThrows(IllegalArgumentException.class, () -> {
+                platformCredentialServiceImpl.updatePlarformCredential(platformCredentialDTO, null);
+            });
+            log.info("Prueba de actualizar plataforma credential id nulo pasada correctamente");
+        }
+
+        @Test
+        @DisplayName("Debe lanzar una excepción cuando el id de la plataforma credential no existe")
+        void shouldThrowExceptionWhenPlatformCredentialIdDoesNotExist() {
+
+            when(platformCredentialRepository.findByIdAndUserId(platformCredentialDTO.getId(), userId)).thenReturn(Optional.empty());
+
+            assertThrows(UsuarioExceptionNoContentException.class, () -> {
+                platformCredentialServiceImpl.updatePlarformCredential(platformCredentialDTO, userId);
+            });
+            log.info("Prueba de actualizar plataforma credential id no existente pasada correctamente");
+        }
+
+        @Test
+        @DisplayName("Debe lanzar una excepción cuando la nueva Plataforma Credential ya existe")
+        void shouldThrowExceptionWhenNewPlatformCredentialAlreadyExists() {
+
+            String credentialId = platformCredential.getId();
+
+            PlatformCredentialDTO updatedDTO = new PlatformCredentialDTO();
+            updatedDTO.setName("GitLab");
+            updatedDTO.setUrl("https://gitlab.com");
+            updatedDTO.setUsername("testuser");
+            updatedDTO.setPassword("password123");
+            updatedDTO.setCreatedDate(LocalDate.now());
+
+            when(platformCredentialRepository.findByIdAndUserId(credentialId, userId)).thenReturn(Optional.of(platformCredential));
+            when(platformCredentialRepository.existsByUserIdAndName(userId, "GitLab")).thenReturn(true);
+
+            assertThrows(IllegalArgumentException.class, () -> {
+                platformCredentialServiceImpl.updatePlarformCredential(updatedDTO, credentialId);
+            });
+            log.info("Prueba de actualizar plataforma credential ya existente pasada correctamente");
+        }
+
+        @Test
+        @DisplayName("Debe actualizar la Plataforma Credential correctamente")
+        void shouldUpdatePlatformCredentialSuccessfully() {
+
+            String credentialId = platformCredential.getId();
+
+            PlatformCredentialDTO updatedDTO = new PlatformCredentialDTO();
+            updatedDTO.setName("Github");
+            updatedDTO.setUrl("https://github.com/updated");
+            updatedDTO.setUsername("testuser");
+            updatedDTO.setPassword("password123");
+            updatedDTO.setCreatedDate(LocalDate.now());
+
+            when(platformCredentialRepository.findByIdAndUserId(credentialId, userId)).thenReturn(Optional.of(platformCredential));
+            when(platformCredentialRepository.save(any(PlatformCredential.class))).thenReturn(platformCredential);
+
+            PlatformCredentialDTO result = platformCredentialServiceImpl.updatePlarformCredential(updatedDTO, credentialId);
+
+            assertNotNull(result);
+            assertEquals("Github", result.getName());
+            assertEquals("https://github.com/updated", result.getUrl());
+            verify(platformCredentialRepository, times(1)).save(any(PlatformCredential.class));
+            verify(platformCredentialRepository, never()).existsByUserIdAndName(anyString(), anyString());
+
+            log.info("Prueba de actualizar plataforma Credential correctamente");
+
         }
     }
 

@@ -82,6 +82,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
     public PlatformCredentialDTO createPlatformCredential(PlatformCredentialDTO platformCredentialDTO) {
 
         if (platformCredentialDTO == null) {
+            log.error("La plataforma no puede ser nula!");
             throw new IllegalArgumentException("La plataforma no puede ser nula!");
         }
 
@@ -106,14 +107,14 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
     public PlatformCredentialDTO updatePlarformCredential(PlatformCredentialDTO platformCredentialDTO, String id) {
 
         if (id == null || platformCredentialDTO == null) {
-            log.error("La plataforma y/o no puede ser nulo");
+            log.error("La plataforma y/o id no puede ser nulo");
             throw new IllegalArgumentException("El id y/o plataforma no puede ser nulo!!");
         }
 
         String userId = getCurrentUserId();
 
         PlatformCredential existing = platformCredentialRepository.findByIdAndUserId(id, userId).orElseThrow(() -> {
-            log.error("Error al actualizar, la plataforma no encontrada con el id: {}", id);
+            log.error("Error al actualizar, plataforma no encontrada con el id: {}", id);
             return new UsuarioExceptionNoContentException("Plataforma no encontrada con el id: " + id + " para el usuario: " + userId);
 
         });
