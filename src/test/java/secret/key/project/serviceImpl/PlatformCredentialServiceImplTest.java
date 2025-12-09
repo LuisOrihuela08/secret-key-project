@@ -22,6 +22,7 @@ import org.springframework.security.core.parameters.P;
 import secret.key.project.dto.PlatformCredentialDTO;
 import secret.key.project.entity.PlatformCredential;
 import secret.key.project.entity.User;
+import secret.key.project.error.PlatformCredentialExporException;
 import secret.key.project.error.UsuarioException;
 import secret.key.project.error.UsuarioExceptionNoContentException;
 import secret.key.project.repository.PlatformCredentialRepository;
@@ -62,7 +63,7 @@ public class PlatformCredentialServiceImplTest {
 
     //Configuración incial y común para las pruebas
     @BeforeEach
-    void setUp(){
+    void setUp() {
 
         //userId = "user-123";
         userId = UUID.randomUUID().toString();
@@ -99,7 +100,7 @@ public class PlatformCredentialServiceImplTest {
 
         @Test
         @DisplayName("Debe lanzar excepcion cuando el usuario no esta autenticado")
-        void shouldThrowExceptionWhenUserNotAuthenticated(){
+        void shouldThrowExceptionWhenUserNotAuthenticated() {
             when(authentication.isAuthenticated()).thenReturn(false);
 
             assertThrows(UsuarioException.class, () -> {
@@ -154,7 +155,7 @@ public class PlatformCredentialServiceImplTest {
 
         @Test
         @DisplayName("Debe lanzar una excepción cuando la página este vacia")
-        void shouldThrowExceptionWhenPageIsEmpty(){
+        void shouldThrowExceptionWhenPageIsEmpty() {
             Pageable pageable = PageRequest.of(0, 10);
             Page<PlatformCredential> emptyPage = new PageImpl<>(Collections.emptyList());
 
@@ -166,4 +167,48 @@ public class PlatformCredentialServiceImplTest {
             log.info("Prueba de página vacia pasada correctamente");
         }
     }
+
+    @Nested
+    @DisplayName("Test de createPlatformCredential")
+    class createPlatformCredentialTests {
+
+        @Test
+        @DisplayName("Debe lanzar una excepción cuando la Plataforma es nula")
+        void shouldThrowExceptionWhenPlatformCredentialIsNull() {
+
+            assertThrows(IllegalArgumentException.class, () -> {
+                platformCredentialServiceImpl.createPlatformCredential(null);
+            });
+            log.info("Prueba de crear plataforma nula pasada correctamente");
+        }
+
+        @Test
+        @DisplayName("Debe lanzar una excepción cuando la Plataforma ya existe")
+        void shouldThrowExceptionWhenPlatformCredentialIsExists() {
+
+            when(platformCredentialRepository.existsByUserIdAndName(userId, platformCredentialDTO.getName())).thenReturn(true);
+
+            assertThrows(PlatformCredentialExporException.class, () -> {
+                platformCredentialServiceImpl.createPlatformCredential(platformCredentialDTO);
+            });
+            log.info("Prueba de crear plataforma existente pasada correctamente");
+        }
+
+        @Test
+        @DisplayName("Debe crear la Plataforma Credential correctamente")
+        void shouldCreatePlatformCredentialSuccessfully() {
+
+            when(platformCredentialRepository.existsByUserIdAndName(userId, platformCredentialDTO.getName())).thenReturn(false);
+            when(platformCredentialRepository.save(any(PlatformCredential.class))).thenReturn(platformCredential);
+
+            PlatformCredentialDTO result = platformCredentialServiceImpl.createPlatformCredential(platformCredentialDTO);
+
+            assertNotNull(result);
+            assertEquals("Github", result.getName());
+            assertEquals("https://github.com", result.getUrl());
+            verify(platformCredentialRepository, times(1)).save(any(PlatformCredential.class));
+            log.info("Prueba de crear plataforma Credential correctamente");
+        }
+    }
+
 }
