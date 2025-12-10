@@ -3,7 +3,7 @@ spring:
     name: secret-key-project
     version: 1.0.0
   profiles:
-    active: deploy
+    active: test
 
 ---
 spring:
@@ -31,14 +31,14 @@ springdoc:
 spring:
   config:
     activate:
-      on-profile: deploy
+      on-profile: dev
     #import: optional:file:.env[.properties]
 
   mongodb:
     uri: mongodb://mongo:mongo@mongodb:27017/secretkey?authSource=admin
 
 jwt:
-  secret: mydeploysecretkey
+  secret: mysupersecretdevkey
   expiration: 86400000
 
 server:
@@ -47,3 +47,19 @@ server:
 springdoc:
   swagger-ui:
     path: /swagger-ui-custom.html
+
+---
+# Configuración para el perfil test
+spring:
+  config:
+    activate:
+      on-profile: test
+    import: optional:file:.env[.properties]
+
+  mongodb:
+      # No especifico la uri porque será inyectada por @DynamicPropertySource
+    auto-index-creation: true
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000
