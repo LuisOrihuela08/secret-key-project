@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.core.env.Environment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -74,7 +77,36 @@ public class PlatformCredentialIntegrationTest {
 
     @Test
     @Order(1)
-    @DisplayName("Test 1 - Save Plataforma Credential - MongoDB")
+    @DisplayName("Test 1 -  Get Pagination of PlatformCredentials - MongoDB")
+    void testGetPaginationOfPlatformCredentials(){
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        PlatformCredential platformCredential = new PlatformCredential();
+        platformCredential.setName("Gitlab");
+        platformCredential.setUrl("https://gitlab.com");
+        platformCredential.setUsername("gitlab");
+        platformCredential.setPassword("123");
+        platformCredential.setUserId("user-123");
+        platformCredential.setCreatedDate(LocalDate.now());
+
+        log.info("💾 Saving PlatformCredential for pagination test: {}", platformCredential.getName());
+
+        PlatformCredential saved = platformCredentialRepository.save(platformCredential);
+
+        Page<PlatformCredential> platformPagination = platformCredentialRepository.findByUserId(pageable, "user-123");
+
+        assertNotNull(platformPagination, "PlatformPagination should not be null");
+        assertEquals(1, platformPagination.getTotalElements(), "There should be one PlatformCredential");
+        assertEquals("Gitlab", platformPagination.getContent().get(0).getName(), "The PlatformCredential name should match");
+
+        log.info("✅ PlatformCredential saved and verified successfully with ID: {}", platformPagination.getContent().get(0).getId());
+        log.info("✅ PlatformCredential details: {}", platformPagination);
+    }
+
+    @Test
+    @Order(2)
+    @DisplayName("Test 2 - Save Plataforma Credential - MongoDB")
     void testSavePlatformCredential(){
 
         PlatformCredential platformCredential = new PlatformCredential();
