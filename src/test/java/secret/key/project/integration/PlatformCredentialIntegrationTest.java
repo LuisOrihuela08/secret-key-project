@@ -40,7 +40,7 @@ public class PlatformCredentialIntegrationTest {
     //@Autowired
     //private ObjectMapper objectMapper;
 
-   // @Autowired
+    // @Autowired
     //private MockMvc mockMvc;
 
     @Autowired
@@ -50,7 +50,7 @@ public class PlatformCredentialIntegrationTest {
     static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:7.0").withExposedPorts(27017);
 
     @DynamicPropertySource
-    static void setProperties(DynamicPropertyRegistry registry){
+    static void setProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
 
         log.info("🚀 MongoDB container started!");
@@ -60,7 +60,7 @@ public class PlatformCredentialIntegrationTest {
     }
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
 
         String actualUri = environment.getProperty("spring.mongodb.uri");
         log.info("🔍 Spring is actually using URI: {}", actualUri);
@@ -70,7 +70,7 @@ public class PlatformCredentialIntegrationTest {
     }
 
     @AfterEach
-    void tearDown(){
+    void tearDown() {
         platformCredentialRepository.deleteAll();
         log.info("🧹 Database cleaned up after each test.");
     }
@@ -78,36 +78,33 @@ public class PlatformCredentialIntegrationTest {
     @Test
     @Order(1)
     @DisplayName("Test 1 -  Get Pagination of PlatformCredentials - MongoDB")
-    void testGetPaginationOfPlatformCredentials(){
+    void testGetPaginationOfPlatformCredentials() {
 
+        for (int i = 1; i <= 10; i++) {
+            PlatformCredential cred = new PlatformCredential();
+            cred.setName("Platform " + i);
+            cred.setUrl("https://platform" + i + ".com");
+            cred.setUsername("user" + i);
+            cred.setPassword("pass" + i);
+            cred.setUserId("user-123");
+            cred.setCreatedDate(LocalDate.now());
+            platformCredentialRepository.save(cred);
+        }
         Pageable pageable = PageRequest.of(0, 10);
-
-        PlatformCredential platformCredential = new PlatformCredential();
-        platformCredential.setName("Gitlab");
-        platformCredential.setUrl("https://gitlab.com");
-        platformCredential.setUsername("gitlab");
-        platformCredential.setPassword("123");
-        platformCredential.setUserId("user-123");
-        platformCredential.setCreatedDate(LocalDate.now());
-
-        log.info("💾 Saving PlatformCredential for pagination test: {}", platformCredential.getName());
-
-        PlatformCredential saved = platformCredentialRepository.save(platformCredential);
-
         Page<PlatformCredential> platformPagination = platformCredentialRepository.findByUserId(pageable, "user-123");
 
-        assertNotNull(platformPagination, "PlatformPagination should not be null");
-        assertEquals(1, platformPagination.getTotalElements(), "There should be one PlatformCredential");
-        assertEquals("Gitlab", platformPagination.getContent().get(0).getName(), "The PlatformCredential name should match");
+        assertEquals(10, platformPagination.getContent().size(), "Primera página debe tener 10 elementos");
+        assertEquals(10, platformPagination.getTotalElements(), "Total debe ser 10");
+        assertEquals(1, platformPagination.getTotalPages(), "Debe haber 1 página");
 
-        log.info("✅ PlatformCredential saved and verified successfully with ID: {}", platformPagination.getContent().get(0).getId());
+        log.info("✅ Paginación verificada: {} elementos en {} páginas", platformPagination.getTotalElements(), platformPagination.getTotalPages());
         log.info("✅ PlatformCredential details: {}", platformPagination);
     }
 
     @Test
     @Order(2)
     @DisplayName("Test 2 - Save Plataforma Credential - MongoDB")
-    void testSavePlatformCredential(){
+    void testSavePlatformCredential() {
 
         PlatformCredential platformCredential = new PlatformCredential();
         platformCredential.setName("Gitlab");
