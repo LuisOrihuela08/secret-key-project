@@ -174,4 +174,25 @@ public class PlatformCredentialControllerTest {
             log.info("Prueba de petición HTTP DELETE eliminar plataforma exitosa.");
         }
     }
+
+    @Nested
+    @DisplayName("Test GET /export/excel - Debe exportar plataformas a Excel exitosamente")
+    class exportPlatformCredentialExcel{
+
+        @Test
+        void testExportPlatformCredentialExcel(){
+
+            byte[] mockExcel = new byte[]{0x50, 0x4B, 0x03, 0x04}; // Simulación de archivo Excel en bytes
+
+            when(platformCredentialService.exportarPlataformasExcel()).thenReturn(mockExcel);
+
+            ResponseEntity<byte[]> result = platformCredentialController.exportPlatformCredentialExcel();
+
+            assertNotNull(result);
+            assertEquals(HttpStatus.OK, result.getStatusCode());
+            assertEquals(mockExcel, result.getBody());
+            verify(platformCredentialService, times(1)).exportarPlataformasExcel();
+            log.info("Prueba de petición HTTP GET exportar plataformas a Excel exitosa.");
+        }
+    }
 }
