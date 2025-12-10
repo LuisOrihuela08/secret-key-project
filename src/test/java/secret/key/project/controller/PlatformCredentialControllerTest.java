@@ -195,4 +195,25 @@ public class PlatformCredentialControllerTest {
             log.info("Prueba de petición HTTP GET exportar plataformas a Excel exitosa.");
         }
     }
+
+    @Nested
+    @DisplayName("Test GET /export/pdf - Debe exportar plataformas a PDF exitos")
+    class exportPlatformCredentialPdf{
+
+        @Test
+        void testExportPlatformCredentialPdf(){
+
+            byte[] mockPdf = new byte[]{0x25, 0x50, 0x44, 0x46}; // Simulación de archivo PDF en bytes
+
+            when(platformCredentialService.exportarPlataformasPDF()).thenReturn(mockPdf);
+
+            ResponseEntity<byte[]> result = platformCredentialController.exportPlatformCredentialPdf();
+
+            assertNotNull(result);
+            assertEquals(HttpStatus.OK, result.getStatusCode());
+            assertEquals(mockPdf, result.getBody());
+            verify(platformCredentialService, times(1)).exportarPlataformasPDF();
+            log.info("Prueba de petición HTTP GET exportar plataformas a PDF exitosa.");
+        }
+    }
 }
