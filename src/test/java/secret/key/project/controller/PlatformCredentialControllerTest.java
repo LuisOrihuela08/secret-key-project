@@ -23,6 +23,7 @@ import secret.key.project.service.PlatformCredentialService;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
@@ -152,6 +153,25 @@ public class PlatformCredentialControllerTest {
             assertEquals("newtestpassword", result.getBody().getPassword());
             verify(platformCredentialService, times(1)).updatePlarformCredential(updatePlatformCredential, platformCredentialDTO.getId());
             log.info("Prueba de petición HTTP PUT actualizar plataforma exitosa.");
+        }
+    }
+
+    @Nested
+    @DisplayName("Test DELETE /{id} - Debe eliminar plataforma exitosamente")
+    class deletePlatformCredential{
+
+        @Test
+        void testDeletePlatformCredential(){
+
+            doNothing().when(platformCredentialService).deletePlatformCredential(platformCredentialDTO.getId());
+
+            ResponseEntity<Map<String, String>> result = platformCredentialController.deletePlatformCredential(platformCredentialDTO.getId());
+
+            assertNotNull(result);
+            assertEquals(HttpStatus.OK, result.getStatusCode());
+            assertEquals("Plataforma eliminada con éxito!", result.getBody().get("message"));
+            verify(platformCredentialService, times(1)).deletePlatformCredential(platformCredentialDTO.getId());
+            log.info("Prueba de petición HTTP DELETE eliminar plataforma exitosa.");
         }
     }
 }
