@@ -9,6 +9,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.parameters.P;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -24,6 +25,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @Testcontainers
@@ -103,7 +105,34 @@ public class PlatformCredentialIntegrationTest {
 
     @Test
     @Order(2)
-    @DisplayName("Test 2 - Save Plataforma Credential - MongoDB")
+    @DisplayName("Test 2 - Get by Name and UserId PlatformCredential - MongoDB")
+    void testGetByNameAndUserIdPlatformCredential(){
+
+        PlatformCredential platformCredential = new PlatformCredential();
+        platformCredential.setName("Gitlab");
+        platformCredential.setUrl("https://gitlab.com");
+        platformCredential.setUsername("gitlab");
+        platformCredential.setPassword("123");
+        platformCredential.setUserId("user-123");
+        platformCredential.setCreatedDate(LocalDate.now());
+
+        platformCredentialRepository.save(platformCredential);
+        log.info("💾 PlatformCredential saved: {}", platformCredential.getName());
+
+        Optional<PlatformCredential> found = platformCredentialRepository.findByNameAndUserId("Gitlab", "user-123");
+
+        assertTrue(found.isPresent(), "PlatformCredential should be found by name and userId");
+        assertEquals("Gitlab", found.get().getName());
+        assertEquals("user-123", found.get().getUserId());
+
+        log.info("✅ PlatformCredential consult Name: {} and UserId: {}", found.get().getName(), found.get().getUserId());
+        log.info("✅ PlatformCredential details: {}", found);
+
+    }
+
+    @Test
+    @Order(3)
+    @DisplayName("Test 3 - Save Plataforma Credential - MongoDB")
     void testSavePlatformCredential() {
 
         PlatformCredential platformCredential = new PlatformCredential();
