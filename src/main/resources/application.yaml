@@ -13,13 +13,13 @@ spring:
     import: optional:file:.env[.properties]
 
   mongodb:
-    uri: mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@mskcluster.ppgxfer.mongodb.net/${MONGO_DATABASE}?retryWrites=true&w=majority&appName=MSKCluster
+    uri: ${MONGO_URI}
 
 server:
   forward-headers-strategy: framework  # Habilita detección de protocolo HTTPS en producción
 
 jwt:
-  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  secret: ${JWT_SECRET}
   expiration: 86400000  # 24 horas en milisegundos
 
 springdoc:
@@ -32,13 +32,13 @@ spring:
   config:
     activate:
       on-profile: deploy
-    import: optional:file:.env[.properties]
+    #import: optional:file:.env[.properties]
 
   mongodb:
     uri: mongodb://mongo:mongo@mongodb:27017/secretkey?authSource=admin
 
 jwt:
-  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  secret: mydeploysecretkey
   expiration: 86400000
 
 server:

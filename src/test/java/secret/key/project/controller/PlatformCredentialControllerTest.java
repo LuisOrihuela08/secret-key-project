@@ -104,4 +104,54 @@ public class PlatformCredentialControllerTest {
             log.info("Prueba de petición HTTP GET plataforma por nombre exitosa.");
         }
     }
+
+    @Nested
+    @DisplayName("Test POST / - Debe crear plataforma exitosamente")
+    class createPlatformCredential{
+
+        @Test
+        void testCreatePlatformCredential(){
+
+            when(platformCredentialService.createPlatformCredential(any(PlatformCredentialDTO.class))).thenReturn(platformCredentialDTO);
+
+            ResponseEntity<PlatformCredentialDTO> result = platformCredentialController.createPlatformCredential(platformCredentialDTO);
+
+            assertNotNull(result);
+            assertNotNull(result.getBody());
+            assertEquals(HttpStatus.CREATED, result.getStatusCode());
+            assertEquals("Netflix", result.getBody().getName());
+            verify(platformCredentialService, times(1)).createPlatformCredential(platformCredentialDTO);
+            log.info("Prueba de petición HTTP POST crear plataforma exitosa.");
+        }
+    }
+
+    @Nested
+    @DisplayName("Test PUT /{id} - Debe actualizar plataforma exitosamente")
+    class updatePlatformCredential{
+
+        @Test
+        void testUpdatePlatformCredential(){
+
+            //Objeto de prueba
+            PlatformCredentialDTO updatePlatformCredential = new PlatformCredentialDTO();
+            //updatePlatformCredential.setId(UUID.randomUUID().toString());
+            updatePlatformCredential.setName("Netflix");
+            updatePlatformCredential.setUrl("https://netflix.com");
+            updatePlatformCredential.setUsername("testuser");
+            updatePlatformCredential.setPassword("newtestpassword");
+            updatePlatformCredential.setCreatedDate(LocalDate.now());
+
+            when(platformCredentialService.updatePlarformCredential(updatePlatformCredential, platformCredentialDTO.getId())).thenReturn(updatePlatformCredential);
+
+            ResponseEntity<PlatformCredentialDTO> result = platformCredentialController.updatePlatformCredential(platformCredentialDTO.getId(), updatePlatformCredential);
+
+            assertNotNull(result);
+            assertNotNull(result.getBody());
+            assertEquals(HttpStatus.OK, result.getStatusCode());
+            assertEquals("Netflix", result.getBody().getName());
+            assertEquals("newtestpassword", result.getBody().getPassword());
+            verify(platformCredentialService, times(1)).updatePlarformCredential(updatePlatformCredential, platformCredentialDTO.getId());
+            log.info("Prueba de petición HTTP PUT actualizar plataforma exitosa.");
+        }
+    }
 }
