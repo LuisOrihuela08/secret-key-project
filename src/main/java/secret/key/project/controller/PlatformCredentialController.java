@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/secret-key/v1/platform")
+@RequestMapping("/v1/secret-key/platform")
 public class PlatformCredentialController {
 
     private final PlatformCredentialService platformCredentialService;

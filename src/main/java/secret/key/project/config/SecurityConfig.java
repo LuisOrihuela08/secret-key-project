@@ -32,13 +32,14 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/auth/**",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui.html"
-                        ).permitAll()
-                        .anyRequest().authenticated()
+                                .requestMatchers(
+                                        "/api/auth/**",
+                                        "/swagger-ui/**",
+                                        "/v3/api-docs/**",
+                                        "/swagger-ui.html"
+                                ).permitAll()
+                                .requestMatchers("/v1/secret-key/platform/**").hasRole("USER")
+                                .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

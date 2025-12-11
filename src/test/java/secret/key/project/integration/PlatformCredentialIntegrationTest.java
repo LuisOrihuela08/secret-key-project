@@ -9,17 +9,14 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.parameters.P;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import secret.key.project.entity.PlatformCredential;
 import secret.key.project.repository.PlatformCredentialRepository;
-//import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -38,12 +35,6 @@ public class PlatformCredentialIntegrationTest {
 
     @Autowired
     private PlatformCredentialRepository platformCredentialRepository;
-
-    //@Autowired
-    //private ObjectMapper objectMapper;
-
-    // @Autowired
-    //private MockMvc mockMvc;
 
     @Autowired
     private Environment environment;
@@ -158,6 +149,32 @@ public class PlatformCredentialIntegrationTest {
 
         log.info("✅ PlatformCredential saved and verified successfully with ID: {}", saved.getId());
         log.info("✅ PlatformCredential details: {}", saved);
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("Test 4 - Check Existence by Id and UserId by Update - MongoDB")
+    void testCheckExistenceByIdAndUserIdByUpdate(){
+
+        PlatformCredential platformCredential = new PlatformCredential();
+        platformCredential.setName("Gitlab");
+        platformCredential.setUrl("https://gitlab.com");
+        platformCredential.setUsername("gitlab");
+        platformCredential.setPassword("123");
+        platformCredential.setUserId("user-123");
+        platformCredential.setCreatedDate(LocalDate.now());
+
+        log.info("💾 PlatformCredential in database: {}", platformCredential.getName());
+
+        PlatformCredential saved = platformCredentialRepository.save(platformCredential);
+
+        Optional<PlatformCredential> found = platformCredentialRepository.findByIdAndUserId(saved.getId(), saved.getUserId());
+
+        assertTrue(found.isPresent(), "PlatformCredential should exist by Id and UserId");
+        assertEquals(saved.getId(), found.get().getId());
+        assertEquals(saved.getUserId(), found.get().getUserId());
+        log.info("✅ Existence by Id: {} and UserId: {} verified successfully", saved.getId(), saved.getUserId());
+
     }
 
 }
