@@ -3,7 +3,7 @@ spring:
     name: secret-key-project
     version: 1.0.0
   profiles:
-    active: dev
+    active: prod
 
 ---
 spring:

@@ -241,7 +241,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
         return generarPDF(list);
     }
 
-    //Métodos auxiliares para generar PDF
+    //PDF
     private byte[] generarPDF(List<PlatformCredential> datos) {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -256,6 +256,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
             Font infoFont = new Font(Font.HELVETICA, 12, Font.NORMAL, Color.DARK_GRAY);
             Font headerFont = new Font(Font.HELVETICA, 11, Font.BOLD, Color.WHITE);
             Font contentFont = new Font(Font.HELVETICA, 10, Font.NORMAL, Color.BLACK);
+
 
             //Encabezado
             PdfPTable tableEncabezado = new PdfPTable(2);
@@ -283,38 +284,20 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
             table.setSpacingBefore(10f);
             table.setSpacingAfter(10f);
 
-            PdfPCell header1 = new PdfPCell(new Paragraph("Platform", headerFont));
-            header1.setBackgroundColor(new Color(41, 128, 185));
-            header1.setHorizontalAlignment(Element.ALIGN_CENTER);
-            table.addCell(header1);
-
-            PdfPCell header2 = new PdfPCell(new Paragraph("URL", headerFont));
-            header2.setBackgroundColor(new Color(41, 128, 185));
-            header2.setHorizontalAlignment(Element.ALIGN_CENTER);
-            table.addCell(header2);
-
-            PdfPCell header3 = new PdfPCell(new Paragraph("Username", headerFont));
-            header3.setBackgroundColor(new Color(41, 128, 185));
-            header3.setHorizontalAlignment(Element.ALIGN_CENTER);
-            table.addCell(header3);
-
-            PdfPCell header4 = new PdfPCell(new Paragraph("Password", headerFont));
-            header4.setBackgroundColor(new Color(41, 128, 185));
-            header4.setHorizontalAlignment(Element.ALIGN_CENTER);
-            table.addCell(header4);
-
-            PdfPCell header5 = new PdfPCell(new Paragraph("Date created", headerFont));
-            header5.setBackgroundColor(new Color(41, 128, 185));
-            header5.setHorizontalAlignment(Element.ALIGN_CENTER);
-            table.addCell(header5);
+            // Headers
+            table.addCell(createHeaderCell("Platform", headerFont));
+            table.addCell(createHeaderCell("URL", headerFont));
+            table.addCell(createHeaderCell("Username", headerFont));
+            table.addCell(createHeaderCell("Password", headerFont));
+            table.addCell(createHeaderCell("Date created", headerFont));
 
             //Datos
             for (PlatformCredential dato : datos) {
-                table.addCell(new PdfPCell(new Paragraph(dato.getName(), contentFont)));
-                table.addCell(new PdfPCell(new Paragraph(dato.getUrl(), contentFont)));
-                table.addCell(new PdfPCell(new Paragraph(dato.getUsername(), contentFont)));
-                table.addCell(new PdfPCell(new Paragraph(dato.getPassword(), contentFont)));
-                table.addCell(new PdfPCell(new Paragraph(dato.getCreatedDate().toString(), contentFont)));
+                table.addCell(createDataCell(dato.getName(), contentFont));
+                table.addCell(createDataCell(dato.getUrl(), contentFont));
+                table.addCell(createDataCell(dato.getUsername(), contentFont));
+                table.addCell(createDataCell(dato.getPassword(), contentFont));
+                table.addCell(createDataCell(dato.getCreatedDate().toString(), contentFont));
             }
 
             document.add(table);
@@ -328,8 +311,32 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
         log.info("PDF generado exitosamente!");
         return baos.toByteArray();
     }
+    // Método helper para el header
+    private PdfPCell createHeaderCell(String text, Font font) {
+        PdfPCell cell = new PdfPCell(new Paragraph(text, font));
+        cell.setBackgroundColor(new Color(41, 128, 185));
+        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        cell.setVerticalAlignment(Element.ALIGN_CENTER);
+        cell.setPadding(10f);
+        cell.setBorder(Rectangle.NO_BORDER);
+        cell.setBorderWidthBottom(1f);
+        cell.setBorderColorBottom(new Color(200, 200, 200));
+        return cell;
+    }
 
-    //Métodos auxiliares para generar el Excel
+    // Método helper para los datos
+    private PdfPCell createDataCell(String text, Font font) {
+        PdfPCell cell = new PdfPCell(new Paragraph(text != null ? text : "", font));
+        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        cell.setPadding(10f);
+        cell.setBorder(Rectangle.NO_BORDER);
+        cell.setBorderWidthBottom(0.5f);
+        cell.setBorderColorBottom(new Color(220, 220, 220));
+        return cell;
+    }
+
+    //EXCEL
     private byte[] generarExcel(List<PlatformCredential> datos) {
 
         try {

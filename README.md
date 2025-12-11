@@ -96,7 +96,7 @@ Y listo, podemos realizar todas las operaciones CRUD sobre nuestras credenciales
 
 
 2️⃣ Reportes
-<img width="907" height="592" alt="Image" src="https://github.com/user-attachments/assets/c7059af1-4b5a-4f83-bd79-627975d13270" />
+![Image](https://github.com/user-attachments/assets/cfd50acf-0590-490c-ada9-a8b059f90b1e)
 <img width="700" height="327" alt="Image" src="https://github.com/user-attachments/assets/5f81855a-ae63-4d46-b65c-a12c213b3687" />
 
 ## 👨‍💻 Autor
