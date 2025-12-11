@@ -27,7 +27,7 @@ jobs: #conjunto de tareas
         run: chmod +x ./mvnw
 
       - name: Build JAR
-        run: ./mvnw clean package #-DskipTests ca estoy construyendo el jar de mi proyecto
+        run: ./mvnw clean package -DskipTests #aca estoy construyendo el jar de mi proyecto
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2

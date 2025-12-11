@@ -3,7 +3,7 @@ spring:
     name: secret-key-project
     version: 1.0.0
   profiles:
-    active: prod
+    active: dev
 
 ---
 spring:
@@ -38,7 +38,7 @@ spring:
     uri: mongodb://mongo:mongo@mongodb:27017/secretkey?authSource=admin
 
 jwt:
-  secret: mysupersecretdevkey
+  secret: DHoEyF2VTNrYGafkeIP9LipcGfVkOt8SeBC9SjViYR8=
   expiration: 86400000
 
 server:

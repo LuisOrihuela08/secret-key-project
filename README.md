@@ -30,12 +30,44 @@ Clonar el repositorio del proyecto
    git clone https://github.com/LuisOrihuela08/secret-key-project.git
    cd secret-key-project
    ```
-Crear un archivo .env para alojar tus credenciales de MongoDB:
+Se puede dejar las credenciales por defecto para levantar el proyecto con Docker Compose y construcción local del proyecto. La URI no sufriria modicaciones.
+```bash
+   mongodb://mongo:mongo@mongodb:27017/secretkey?authSource=admin
+   ```
+
+
+Configurar y levantar un contenedor de MongoDB usando Docker:
+Se puede dejar por defecto el jwt, usuario, password y nombre de la base de datos para levantar los docker-compose.yml
+
+| Variable | Descripción                | Ejemplo |
+|----------|----------------------------|--|
+| `MONGO_INITDB_ROOT_USERNAME` | Usuario de MongoDB         | `mongo` |
+| `MONGO_INITDB_ROOT_PASSWORD` | Contraseña de MongoDB      | `mongo` |
+| `MONGO_INITDB_DATABASE` | Nombre de la base de datos | `secretkey` |
+| `JWT_SECRET` | jwt (BASE64)               |  |
+
+En caso se desea generar un nuevo JWT_SECRET en BASE64, se puede usar el siguiente comando:
+```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+   python -c "import secrets, base64; print(base64.b64encode(secrets.token_bytes(32)).decode())"
+   ```
+
+Luego ejecutar los siguientes comandos para levantar el proyecto en modo desarrollo y producción:
+
+```bash
+   docker compose -f docker-compose.dev.yml up -d
+   docker compose -f docker-compose.prod.yml up -d
+   ```
+
+
+Crear un archivo .env para alojar tus credenciales de MongoDB Y jwt si se desea personalizar::
+
 | Variable | Descripción | Ejemplo |
 |----------|-------------|---------|
 | `MONGO_USERNAME` | Usuario de MongoDB | `admin` |
 | `MONGO_PASSWORD` | Contraseña de MongoDB | `miPasswordSeguro123` |
 | `MONGO_DATABASE` | Nombre de la base de datos | `credentials_db` |
+| `JWT_SECRET` | jwt (BASE64)               |  |
 
 Y ejecutar el proyecto en local:
 ```bash

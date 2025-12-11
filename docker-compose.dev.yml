@@ -29,8 +29,9 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: deploy
+      SPRING_PROFILES_ACTIVE: dev
       SPRING_DATA_MONGODB_URI: mongodb://mongo:mongo@mongodb:27017/secretkey?authSource=admin
+      JWT_SECRET: DHoEyF2VTNrYGafkeIP9LipcGfVkOt8SeBC9SjViYR8=
     depends_on:
       mongodb:
         condition: service_healthy
