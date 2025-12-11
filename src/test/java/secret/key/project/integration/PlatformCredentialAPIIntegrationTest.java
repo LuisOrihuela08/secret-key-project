@@ -21,6 +21,7 @@ import secret.key.project.entity.PlatformCredential;
 import secret.key.project.repository.PlatformCredentialRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -178,6 +179,50 @@ public class PlatformCredentialAPIIntegrationTest {
             log.info("Plataforma creada: {}", result.getResponse().getContentAsString());
             log.info("✅ Debe crear una platforma correctamente");
         }
+    }
 
+    //PUT
+    @Nested
+    @DisplayName("PUT /v1/secret-key/platform/{id}")
+    class updatePlatformCredential{
+
+        @Test
+        @Order(4)
+        @WithMockUser(username = "testuser", roles = {"USER"})
+        @DisplayName("Debe actualizar una plataforma correctamente")
+        void shouldUpdatePlatformCredentialSuccessfully() throws Exception{
+
+            PlatformCredential platform = new PlatformCredential();
+            platform.setUserId("testuser");
+            platform.setName("LinkedIn");
+            platform.setUrl("https://linkedin.com");
+            platform.setUsername("usertest");
+            platform.setPassword("passtest");
+            platform.setCreatedDate(LocalDate.now());
+            platformCredentialRepository.save(platform);
+
+            MvcResult result = mockMvc.perform(put("/v1/secret-key/platform/{id}", platform.getId())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(
+                                    """
+                                    {
+                                    "name": "LinkedIn",
+                                    "url": "https://linkedin.com",
+                                    "username": "usertest",
+                                    "password": "newpasstest",
+                                    "createdDate": "2024-12-10"
+                                    }
+                                    """))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.name").value("LinkedIn"))
+                    .andExpect(jsonPath("$.url").value("https://linkedin.com"))
+                    .andExpect(jsonPath("$.username").value("usertest"))
+                    .andExpect(jsonPath("$.id").exists())
+                    .andReturn();
+
+            log.info("Plataforma actualizada: {}", result.getResponse().getContentAsString());
+            log.info("✅ Debe actualizar una plataforma correctamente");
+        }
     }
 }
