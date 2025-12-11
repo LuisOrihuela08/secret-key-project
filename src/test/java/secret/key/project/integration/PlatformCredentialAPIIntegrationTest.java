@@ -5,6 +5,9 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -14,14 +17,18 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import secret.key.project.entity.PlatformCredential;
 import secret.key.project.repository.PlatformCredentialRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import org.springframework.http.MediaType;
+
+import java.time.LocalDate;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -60,18 +67,55 @@ public class PlatformCredentialAPIIntegrationTest {
         log.info("🧹 Database cleaned after test");
     }
 
+    //GET PAGINATION
+    @Nested
+    @DisplayName("GET PAGINATION /v1/secret-key/platform/")
+    class getPlatformCredentialsPagination {
+
+        @Test
+        @Order(1)
+        @WithMockUser(username = "testuser", roles = {"USER"})
+        @DisplayName("Debe obtener la paginación de plataformas correctamente")
+        void getPlatformCredentialPaginationSuccessfully() throws Exception{
+
+            for (int i = 1; i <= 10; i++) {
+                PlatformCredential platforms = new PlatformCredential();
+                platforms.setUserId("testuser");
+                platforms.setName("Platform " + i);
+                platforms.setUrl("https://platform" + i + ".com");
+                platforms.setUsername("user" + i);
+                platforms.setPassword("pass" + i);
+                platforms.setCreatedDate(LocalDate.now());
+                platformCredentialRepository.save(platforms);
+            }
+
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<PlatformCredential> pagination = platformCredentialRepository.findByUserId(pageable, "user123");
+
+            MvcResult result = mockMvc.perform(get("/v1/secret-key/platform/")
+                            .param("page", "0")
+                            .param("size", "10")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content.length()").value(10))
+                    .andExpect(jsonPath("$.totalElements").value(10))
+                    .andExpect(jsonPath("$.totalPages").value(1))
+                    .andReturn();
+        }
+    }
+
     //POST
     @Nested
     @DisplayName("POST /v1/secret-key/platform")
     class createPlatformCredential {
 
         @Test
-        @Order(1)
+        @Order(2)
         @WithMockUser(username = "testuser", roles = {"USER"})
         @DisplayName("Debe crear una platforma correctamente")
         void shouldCreatePlatformCredentialSuccessfully() throws Exception {
 
-            String userId = "user-123";
             String jsonRequest = """
                     {
                     "name": "GitHub",
@@ -95,6 +139,7 @@ public class PlatformCredentialAPIIntegrationTest {
 
             long count = platformCredentialRepository.count();
             assertEquals(1, count, "Debe haber 1 plataforma en la base de datos");
+            log.info("Plataforma creada: {}", result.getResponse().getContentAsString());
             log.info("✅ Debe crear una platforma correctamente");
         }
 
