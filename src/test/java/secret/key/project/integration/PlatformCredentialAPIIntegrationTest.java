@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.springframework.http.MediaType;
 
 import java.time.LocalDate;
@@ -76,7 +77,7 @@ public class PlatformCredentialAPIIntegrationTest {
         @Order(1)
         @WithMockUser(username = "testuser", roles = {"USER"})
         @DisplayName("Debe obtener la paginación de plataformas correctamente")
-        void getPlatformCredentialPaginationSuccessfully() throws Exception{
+        void getPlatformCredentialPaginationSuccessfully() throws Exception {
 
             for (int i = 1; i <= 10; i++) {
                 PlatformCredential platforms = new PlatformCredential();
@@ -89,9 +90,6 @@ public class PlatformCredentialAPIIntegrationTest {
                 platformCredentialRepository.save(platforms);
             }
 
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<PlatformCredential> pagination = platformCredentialRepository.findByUserId(pageable, "user123");
-
             MvcResult result = mockMvc.perform(get("/v1/secret-key/platform/")
                             .param("page", "0")
                             .param("size", "10")
@@ -102,6 +100,44 @@ public class PlatformCredentialAPIIntegrationTest {
                     .andExpect(jsonPath("$.totalElements").value(10))
                     .andExpect(jsonPath("$.totalPages").value(1))
                     .andReturn();
+
+            log.info("Paginación obtenida: {}", result.getResponse().getContentAsString());
+            log.info("✅ Debe obtener la paginación de plataformas correctamente");
+        }
+    }
+
+    //GET/name
+    @Nested
+    @DisplayName("GET-name /v1/secret-key/platform/name")
+    class getPlatformCredentialByName {
+
+        @Test
+        @Order(2)
+        @WithMockUser(username = "testuser", roles = {"USER"})
+        @DisplayName("Debe obtener una platforma por nombre correctamente")
+        void shouldGetPlatformCredentialByNameSuccessfully() throws Exception {
+
+            PlatformCredential platform = new PlatformCredential();
+            platform.setUserId("testuser");
+            platform.setName("LinkedIn");
+            platform.setUrl("https://linkedin.com");
+            platform.setUsername("usertest");
+            platform.setPassword("passtest");
+            platform.setCreatedDate(LocalDate.now());
+            platformCredentialRepository.save(platform);
+
+            MvcResult result = mockMvc.perform(get("/v1/secret-key/platform/name")
+                            .param("name", "LinkedIn")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.name").value("LinkedIn"))
+                    .andExpect(jsonPath("$.url").value("https://linkedin.com"))
+                    .andExpect(jsonPath("$.username").value("usertest"))
+                    .andReturn();
+
+            log.info("Plataforma obtenida: {}", result.getResponse().getContentAsString());
+            log.info("Debe obtener una platforma por nombre correctamente");
         }
     }
 
@@ -111,7 +147,7 @@ public class PlatformCredentialAPIIntegrationTest {
     class createPlatformCredential {
 
         @Test
-        @Order(2)
+        @Order(3)
         @WithMockUser(username = "testuser", roles = {"USER"})
         @DisplayName("Debe crear una platforma correctamente")
         void shouldCreatePlatformCredentialSuccessfully() throws Exception {
