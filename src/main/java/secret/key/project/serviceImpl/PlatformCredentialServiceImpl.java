@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,9 +30,9 @@ import secret.key.project.mapper.PlatformCredentialMapper;
 import secret.key.project.repository.PlatformCredentialRepository;
 import secret.key.project.service.PlatformCredentialService;
 
+import javax.swing.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -204,7 +206,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
         String userId = getCurrentUserId();
         List<PlatformCredential> list = platformCredentialRepository.findByUserId(userId);
 
-        if(list.isEmpty()){
+        if (list.isEmpty()) {
             log.error("La lista de plataformas esta vacia para el usuario: {}", userId);
             throw new PlatformCredentialNoEncontradoException("El usuario no tiene plataformas registradas!");
         }
@@ -219,7 +221,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
         String userId = getCurrentUserId();
         List<PlatformCredential> list = platformCredentialRepository.findByUserId(userId);
 
-        if (list.isEmpty()){
+        if (list.isEmpty()) {
             log.error("Error al generar Excel, la lista de plataformas para el usuario: {} esta vacia", userId);
             throw new PlatformCredentialNoEncontradoException("El usuario no tiene plataformas registradas para generar el Excel!");
         }
@@ -233,7 +235,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
         String userId = getCurrentUserId();
         List<PlatformCredential> list = platformCredentialRepository.findByUserId(userId);
 
-        if (list.isEmpty()){
+        if (list.isEmpty()) {
             log.error("Error al generar PDF, La lista de plataformas para el usuario: {} esta vacia", userId);
             throw new PlatformCredentialNoEncontradoException("El usuario no tiene plataformas registradas para generar el PDF!");
         }
@@ -311,6 +313,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
         log.info("PDF generado exitosamente!");
         return baos.toByteArray();
     }
+
     // Método helper para el header
     private PdfPCell createHeaderCell(String text, Font font) {
         PdfPCell cell = new PdfPCell(new Paragraph(text, font));
@@ -343,28 +346,50 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Lista de credenciales de plataformas");
 
+            CellStyle headerStyle = createHeaderStyle(workbook);
+            CellStyle dataStyle = createDataStyle(workbook);
+
             Row headerRow = sheet.createRow(0);
-            String[] columnas = {"Plataforma", "URL", "Username", "Password", "Fecha de creación"};
+            String[] columnas = {"Platform", "URL", "Username", "Password", "Date created"};
 
             for (int i = 0; i < columnas.length; i++) {
                 Cell cell = headerRow.createCell(i);
                 cell.setCellValue(columnas[i]);
-                cell.setCellStyle(crearEstiloEncabezado(workbook));
+                cell.setCellStyle(headerStyle);
             }
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             int rowNum = 1;
             for (PlatformCredential entity : datos) {
                 Row row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(entity.getName());
-                row.createCell(1).setCellValue(entity.getUrl());
-                row.createCell(2).setCellValue(entity.getUsername());
-                row.createCell(3).setCellValue(entity.getPassword());
-                row.createCell(4).setCellValue(entity.getCreatedDate().format(formatter));
+
+                Cell cell0 = row.createCell(0);
+                cell0.setCellValue(entity.getName());
+                cell0.setCellStyle(dataStyle);
+
+                Cell cell1 = row.createCell(1);
+                cell1.setCellValue(entity.getUrl());
+                cell1.setCellStyle(dataStyle);
+
+                Cell cell2 = row.createCell(2);
+                cell2.setCellValue(entity.getUsername());
+                cell2.setCellStyle(dataStyle);
+
+                Cell cell3 = row.createCell(3);
+                cell3.setCellValue(entity.getPassword());
+                cell3.setCellStyle(dataStyle);
+
+                Cell cell4 = row.createCell(4);
+                cell4.setCellValue(entity.getCreatedDate().format(formatter));
+                cell4.setCellStyle(dataStyle);
+
+                row.setHeightInPoints(25);
+
             }
 
             for (int i = 0; i < columnas.length; i++) {
                 sheet.autoSizeColumn(i);
+                sheet.setColumnWidth(i, sheet.getColumnWidth(i) + 1024);
             }
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -380,12 +405,48 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
         }
     }
 
-    private CellStyle crearEstiloEncabezado(Workbook workbook) {
-        CellStyle estilo = workbook.createCellStyle();
+    //Estilo para el header
+    private CellStyle createHeaderStyle(Workbook workbook) {
+
+        CellStyle style = workbook.createCellStyle();
+
         org.apache.poi.ss.usermodel.Font font = workbook.createFont();
         font.setBold(true);
-        estilo.setFont(font);
-        return estilo;
+        font.setFontHeightInPoints((short) 11);
+        font.setColor(IndexedColors.WHITE.getIndex());
+        style.setFont(font);
+
+        XSSFCellStyle xssfCellStyle = (XSSFCellStyle) style;
+        XSSFColor customColor = new XSSFColor(new byte[]{41, (byte)128, (byte)185}, null);
+        xssfCellStyle.setFillForegroundColor(customColor);
+        xssfCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBottomBorderColor(IndexedColors.GREY_40_PERCENT.getIndex());
+
+        return style;
+    }
+
+    private CellStyle createDataStyle(Workbook workbook) {
+
+        CellStyle style = workbook.createCellStyle();
+
+        org.apache.poi.ss.usermodel.Font font = workbook.createFont();
+        font.setFontHeightInPoints((short) 10);
+        font.setColor(IndexedColors.BLACK.getIndex());
+        style.setFont(font);
+
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBottomBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+
+        return style;
+
     }
 
 

@@ -96,8 +96,12 @@ Y listo, podemos realizar todas las operaciones CRUD sobre nuestras credenciales
 
 
 2️⃣ Reportes
+
+- PDF
 ![Image](https://github.com/user-attachments/assets/cfd50acf-0590-490c-ada9-a8b059f90b1e)
-<img width="700" height="327" alt="Image" src="https://github.com/user-attachments/assets/5f81855a-ae63-4d46-b65c-a12c213b3687" />
+
+- Excel
+![Image](https://github.com/user-attachments/assets/a297050d-80b4-4c26-a828-fd520889ca83)
 
 ## 👨‍💻 Autor
 
