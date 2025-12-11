@@ -5,9 +5,6 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -21,9 +18,7 @@ import secret.key.project.entity.PlatformCredential;
 import secret.key.project.repository.PlatformCredentialRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -103,7 +98,7 @@ public class PlatformCredentialAPIIntegrationTest {
                     .andReturn();
 
             log.info("Paginación obtenida: {}", result.getResponse().getContentAsString());
-            log.info("✅ Debe obtener la paginación de plataformas correctamente");
+            log.info("✅ Test obtener plataformas paginadas passed!");
         }
     }
 
@@ -138,7 +133,7 @@ public class PlatformCredentialAPIIntegrationTest {
                     .andReturn();
 
             log.info("Plataforma obtenida: {}", result.getResponse().getContentAsString());
-            log.info("Debe obtener una platforma por nombre correctamente");
+            log.info("✅ Test obtener plataforma por nombre passed!");
         }
     }
 
@@ -177,20 +172,20 @@ public class PlatformCredentialAPIIntegrationTest {
             long count = platformCredentialRepository.count();
             assertEquals(1, count, "Debe haber 1 plataforma en la base de datos");
             log.info("Plataforma creada: {}", result.getResponse().getContentAsString());
-            log.info("✅ Debe crear una platforma correctamente");
+            log.info("✅ Test crear plataforma passed!");
         }
     }
 
     //PUT
     @Nested
     @DisplayName("PUT /v1/secret-key/platform/{id}")
-    class updatePlatformCredential{
+    class updatePlatformCredential {
 
         @Test
         @Order(4)
         @WithMockUser(username = "testuser", roles = {"USER"})
         @DisplayName("Debe actualizar una plataforma correctamente")
-        void shouldUpdatePlatformCredentialSuccessfully() throws Exception{
+        void shouldUpdatePlatformCredentialSuccessfully() throws Exception {
 
             PlatformCredential platform = new PlatformCredential();
             platform.setUserId("testuser");
@@ -205,14 +200,14 @@ public class PlatformCredentialAPIIntegrationTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(
                                     """
-                                    {
-                                    "name": "LinkedIn",
-                                    "url": "https://linkedin.com",
-                                    "username": "usertest",
-                                    "password": "newpasstest",
-                                    "createdDate": "2024-12-10"
-                                    }
-                                    """))
+                                            {
+                                            "name": "LinkedIn",
+                                            "url": "https://linkedin.com",
+                                            "username": "usertest",
+                                            "password": "newpasstest",
+                                            "createdDate": "2024-12-10"
+                                            }
+                                            """))
                     .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.name").value("LinkedIn"))
@@ -222,7 +217,39 @@ public class PlatformCredentialAPIIntegrationTest {
                     .andReturn();
 
             log.info("Plataforma actualizada: {}", result.getResponse().getContentAsString());
-            log.info("✅ Debe actualizar una plataforma correctamente");
+            log.info("✅ Test actualizar plataforma passed!");
+        }
+    }
+
+    @Nested
+    @DisplayName("DELETE /v1/secret-key/platform/{id}")
+    class deletePlatformCredential {
+
+        @Test
+        @Order(5)
+        @WithMockUser(username = "testuser", roles = {"USER"})
+        @DisplayName("Debe eliminar una plataforma correctamente")
+        void shouldDeletePlatformCredentialSuccessfully() throws Exception {
+
+            PlatformCredential platform = new PlatformCredential();
+            platform.setUserId("testuser");
+            platform.setName("LinkedIn");
+            platform.setUrl("https://linkedin.com");
+            platform.setUsername("usertest");
+            platform.setPassword("passtest");
+            platform.setCreatedDate(LocalDate.now());
+            platformCredentialRepository.save(platform);
+
+            MvcResult result = mockMvc.perform(delete("/v1/secret-key/platform/{id}", platform.getId())
+                    .contentType(MediaType.APPLICATION_JSON))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Plataforma eliminada con éxito!"))
+                    .andReturn();
+
+            log.info("Test plataforma eliminada pasada! {}", result.getResponse().getContentAsString());
+            log.info("✅ Test eliminar plataforma passed!");
+
         }
     }
 }
