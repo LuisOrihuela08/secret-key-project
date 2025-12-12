@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class GlobalCorsConfiguration {
 
-    private final String frontendurl = "http://localhost:4200";
+    private final String frontendurl = "http://localhost:3000";
 
     @Bean
     public WebMvcConfigurer corsConfiguration(){
@@ -19,8 +19,10 @@ public class GlobalCorsConfiguration {
             public void addCorsMappings(CorsRegistry corsRegistry){
                 corsRegistry.addMapping("/**")
                         .allowedOrigins(frontendurl)
-                        .allowedMethods("GET", "POST","PUT","DELETE")
-                        .allowedHeaders("*");
+                        .allowedMethods("GET", "POST","PUT","DELETE", "OPTIONS")
+                        .allowedHeaders("*")
+                        .allowCredentials(true) // Muy importante para JWT
+                        .maxAge(3600);
             }
         };
     }
