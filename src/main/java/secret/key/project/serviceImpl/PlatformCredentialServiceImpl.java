@@ -14,6 +14,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -33,6 +34,7 @@ import secret.key.project.service.PlatformCredentialService;
 import javax.swing.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -118,7 +120,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
         PlatformCredential entity = PlatformCredentialMapper.toEntity(platformCredentialDTO);
 
         entity.setUserId(userId);
-        //entity.setCreatedDate(LocalDate.now());
+        entity.setCreatedDate(LocalDate.now());
         PlatformCredential saved = platformCredentialRepository.save(entity);
 
         log.info("Plataforma registrada: {}, del usuario: {}", saved, userId);
@@ -153,7 +155,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
         existing.setUrl(platformCredentialDTO.getUrl());
         existing.setUsername(platformCredentialDTO.getUsername());
         existing.setPassword(platformCredentialDTO.getPassword());
-        existing.setCreatedDate(platformCredentialDTO.getCreatedDate());
+        existing.setCreatedDate(LocalDate.now());
 
         PlatformCredential saved = platformCredentialRepository.save(existing);
 
@@ -193,7 +195,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
 
         PlatformCredential entity = platformCredentialRepository.findByNameAndUserId(name, userId).orElseThrow(() -> {
             log.error("Plataforma no encontrada con el nombre: {}", name);
-            return new PlatformCredentialNoEncontradoException("Plataforma no encontrada con el nombre: " + name + " para el usuario: " + userId);
+            return new PlatformCredentialNoEncontradoException("Plataforma no encontrada con el nombre: " + name);
         });
 
         log.info("Plataforma encontrada: {}", entity);
