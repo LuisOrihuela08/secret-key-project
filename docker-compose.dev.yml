@@ -20,11 +20,11 @@ services:
       timeout: 5s
       retries: 5
 
-  app:
+  backend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: secretkey-app
+    container_name: secretkey-backend
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -35,6 +35,20 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+    networks:
+      - secretkey-network
+
+  frontend:
+    image: secretkey-frontend:latest
+    container_name: secretkey-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+    depends_on:
+      - backend
     networks:
       - secretkey-network
 
