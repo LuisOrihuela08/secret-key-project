@@ -37,6 +37,20 @@ services:
     networks:
       - secretkey-network
 
+  secret-key-frontend:
+    image: luisorihuela92/secret-key-frontend:latest
+    container_name: secretkey-app-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+    depends_on:
+      - secret-key-backend
+    networks:
+      - secretkey-network
+
 volumes:
   mongodb_data:
     name: secretkey-mongodb-data
