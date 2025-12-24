@@ -279,7 +279,7 @@ public class PlatformCredentialServiceImpl implements PlatformCredentialService 
             document.add(tableEncabezado);
 
             //Subtitulo del documento
-            document.add(new Paragraph("Report date: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), infoFont));
+            document.add(new Paragraph("Report date: " + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), infoFont));
             document.add(Chunk.NEWLINE);
 
             //Tabla y sus columnas
