@@ -115,7 +115,23 @@ And that's it, we can now perform all CRUD operations on our credentials.
    https://github.com/LuisOrihuela08/secret-key-project-frontend.git
    ```
 
-To get the web application up and running quickly, it is best to run the following docker-compose: 
+## 📦 Quick Start (Local or Server) — Nginx Reverse Proxy
+
+This setup uses a single `docker-compose.yml` + `nginx.conf` that works **both locally and on a remote server** (AWS EC2 or any VPS) without touching any code or rebuilding images. Nginx sits in front of the frontend and backend, so everything is served under one origin — no CORS issues, no hardcoded `localhost` URLs baked into the frontend build.
+
+### 1. Files you need
+
+Create a folder with these 3 files:
+
+```
+secret-key/
+├── docker-compose.yml
+├── nginx.conf
+└── .env          ← do NOT commit this file
+```
+
+**`docker-compose.yml`**
+
 ```bash
 services:
   mongodb:
@@ -143,13 +159,12 @@ services:
     image: luisorihuela92/secret-key-backend:latest
     container_name: secretkey-app-backend
     restart: unless-stopped
-    ports:
-      - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SPRING_DATA_MONGODB_URI: mongodb://mongo:mongo@mongodb:27017/secretkey?authSource=admin
-      JWT_SECRET: DHoEyF2VTNrYGafkeIP9LipcGfVkOt8SeBC9SjViYR8=
+      JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: 86400000
+      FRONTEND_URL: ${FRONTEND_URL}
     depends_on:
       mongodb:
         condition: service_healthy
@@ -160,13 +175,24 @@ services:
     image: luisorihuela92/secret-key-frontend:latest
     container_name: secretkey-app-frontend
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://localhost:8080
     depends_on:
       - secret-key-backend
+    networks:
+      - secretkey-network
+      
+  nginx:
+    image: nginx:alpine
+    container_name: secretkey-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - secret-key-backend
+      - secret-key-frontend
     networks:
       - secretkey-network
 
@@ -179,11 +205,105 @@ volumes:
 networks:
   secretkey-network:
    ```
+**`nginx.conf`**
+```nginx
+server {
+    listen 80;
+    server_name _;
+ 
+    location /api/ {
+        proxy_pass http://secret-key-backend:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+ 
+    location /v1/ {
+        proxy_pass http://secret-key-backend:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+ 
+    location / {
+        proxy_pass http://secret-key-frontend:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+**`.env`** (create this yourself, don't commit it)
+```
+JWT_SECRET=DHoEyF2VTNrYGafkeIP9LipcGfVkOt8SeBC9SjViYR8=
+FRONTEND_URL=http://localhost
+```
+
+| Variable | Description | Local example | Server example |
+|----------|-------------|----------------|-----------------|
+| `JWT_SECRET` | JWT signing key (BASE64) | `DHoEyF2VTNrYGafkeIP9LipcGfVkOt8SeBC9SjViYR8=` | use your own generated secret |
+| `FRONTEND_URL` | Public origin allowed by CORS | `http://localhost` | `http://your-server-ip-or-domain` |
 
 And access the link
 ```bash
    http://localhost:3000
    ```
+
+### 2. Run it locally
+
+```bash
+docker compose up -d
+```
+
+Access the app at:
+```
+http://localhost
+```
+(note: port 80 now, not `localhost:3000` — everything is routed through Nginx)
+
+### 3. Run it on a server (AWS EC2 or any VPS)
+
+**a) Install Docker on the instance:**
+```bash
+curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+```
+
+**b) Open only port 80 (and 443 if you add HTTPS later)** in your Security Group / firewall. Do **not** expose `8080`, `3000`, or `27017` publicly — they only need to be reachable inside the Docker network.
+
+**c) Copy the 3 files to the server:**
+```bash
+scp docker-compose.yml nginx.conf usuario@your-server-ip:~/secret-key/
+```
+
+**d) Create the `.env` on the server** with the server's public IP/domain:
+```
+JWT_SECRET=<generate-a-new-one-for-production>
+FRONTEND_URL=http://your-server-ip-or-domain
+```
+
+**e) Pull and run:**
+```bash
+cd ~/secret-key
+docker compose pull
+docker compose up -d
+```
+
+**f) Access:**
+```
+http://your-server-ip-or-domain
+```
+
+### Why this works the same in both places
+
+- **Frontend ↔ backend calls** go through relative paths (`/api/...`, `/v1/...`), so no `NEXT_PUBLIC_API_URL` needs to be baked into the image at build time.
+- **Nginx** is the only container that needs a published port — it routes `/api/` and `/v1/` to the backend and everything else to the frontend, so the browser only ever talks to one origin.
+- **Mongo's connection string (`mongodb:27017`)** and its healthcheck (`localhost:27017`) are internal Docker-network references — they never change between environments.
+- The only thing that changes between local and server is the **`FRONTEND_URL`** value in `.env`.
 
 ## 👨‍💻 Author
 

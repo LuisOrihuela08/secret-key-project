@@ -25,10 +25,11 @@ public class SwaggerConfig {
                                         .name("Luis Orihuela")
                                 //.email("support@secretkey.com")
                         ))
-                .servers(List.of(
-                        new Server()
-                                .url("http://localhost:8080")
-                                .description("Desarrollo Local")))
+//                .servers(
+//                        List.of(
+//                        new Server()
+//                                .url("http://localhost:8080")
+//                               .description("Desarrollo Local")))
                 .components(new Components()
                         .addSecuritySchemes("bearer-jwt", new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)

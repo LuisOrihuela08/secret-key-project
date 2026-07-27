@@ -9,7 +9,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class GlobalCorsConfiguration {
 
-    private final String frontendurl = "http://localhost:3000";
+//    private final String frontendurl = "http://localhost:3000";
+
+    @Value("${app.frontend.url}")
+    private String frontendurl;
 
     @Bean
     public WebMvcConfigurer corsConfiguration(){
@@ -18,7 +21,7 @@ public class GlobalCorsConfiguration {
             @Override
             public void addCorsMappings(CorsRegistry corsRegistry){
                 corsRegistry.addMapping("/**")
-                        .allowedOrigins(frontendurl)
+                        .allowedOrigins(frontendurl.split(","))
                         .allowedMethods("GET", "POST","PUT","DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true) // Muy importante para JWT
